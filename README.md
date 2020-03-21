@@ -3,9 +3,6 @@
 Home Assisatnt shopping list integration based on [Grocy ERP](https://grocy.info/)
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
-[![GitHub Activity][commits-shield]][commits]
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 ## Description
