@@ -1,1 +1,1 @@
-# Home Assistant Grocy Integration
+# Grocery List

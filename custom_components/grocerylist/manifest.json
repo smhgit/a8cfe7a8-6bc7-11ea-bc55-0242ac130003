@@ -1,6 +1,6 @@
 {
-  "domain": "ha_grocy",
-  "name": "HA Grocy Integration",
+  "domain": "grocerylist",
+  "name": "Grocery List",
   "documentation": "",
   "dependencies": [],
   "codeowners": ["@smhgit"],

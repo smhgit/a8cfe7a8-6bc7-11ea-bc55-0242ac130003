@@ -2,7 +2,7 @@
 
 VERSION = "0.0.22"
 
-DOMAIN = "ha_grocy"
+DOMAIN = "grocerylist"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
 DOMAIN_EVENT = "grocy_updated"
 
@@ -12,7 +12,7 @@ REQUIRED_FILES = [
     "sensor.py",
     ".translations/en.json"
 ]
-ISSUE_URL = "https://github.com/custom-components/grocy/issues"
+ISSUE_URL = "https://github.com/smhgit/grocery_list/issues"
 DOMAIN_SERVICE = "{}"
 
 # Integration local data
