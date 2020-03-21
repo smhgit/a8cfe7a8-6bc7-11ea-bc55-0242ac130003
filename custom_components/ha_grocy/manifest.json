@@ -1,8 +1,8 @@
 {
-  "domain": "grocy",
-  "name": "Grocy Integration",
+  "domain": "ha_grocy",
+  "name": "HA Grocy Integration",
   "documentation": "",
   "dependencies": [],
-  "codeowners": [],
+  "codeowners": ["@smhgit"],
   "requirements": []
 }

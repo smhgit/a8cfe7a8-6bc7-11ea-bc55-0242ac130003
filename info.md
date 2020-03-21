@@ -1,1 +1,1 @@
-# Integration to Grocy
+# Home Assistant Grocy Integration
