@@ -1,0 +1,15 @@
+{
+  "config": {
+    "title": "Grocy",
+    "step": {
+      "user": {
+        "title": "Set up Grocy",
+        "data": {
+          "host": "Host",
+          "port": "port",
+          "apikey": "apikey"
+        }
+      }
+    }
+  }
+}
