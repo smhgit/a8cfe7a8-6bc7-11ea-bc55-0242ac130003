@@ -1,10 +1,13 @@
+'''Custom component services'''
+
 import logging
 
 from homeassistant.core import callback
 
 from homeassistant.const import CONF_HOST, CONF_SCAN_INTERVAL, CONF_ENTITY_ID
 
-from .store import Store, RamiLevyStoreApiClient, ShufersalStoreApiClient
+from .store import Store
+
 from .sensor import ProductSensor, ShoppingListSensor
 from .utils import contains
 
@@ -118,10 +121,7 @@ async def async_add_to_list(hass, data):
         })
 
 async def async_add_product(hass, data):
-    if data[CONF_STORE].lower() == ShufersalStoreApiClient.name:
-        store = Store(ShufersalStoreApiClient())
-    else:
-        store = Store(RamiLevyStoreApiClient())
+    store = Store()
     # Add all products to grocy (products can be ',' seperated)
     for barcode in data[CONF_BARCODE].split(","):
         product = store.get_product_by_barcode(barcode)

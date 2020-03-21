@@ -1,5 +1,5 @@
 {
-  "name": "Grocery List",
+  "name": "Grocy",
   "domains": ["sensor"],
   "homeassistant": "0.106.0"
 }

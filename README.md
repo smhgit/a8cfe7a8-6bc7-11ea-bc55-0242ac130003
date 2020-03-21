@@ -1,4 +1,4 @@
-# Grocery List
+# Grocy
 
 A Home Assisatnt shopping list integration based on [Grocy ERP](https://grocy.info/).
 
@@ -20,7 +20,7 @@ A Home Assisatnt shopping list integration based on [Grocy ERP](https://grocy.in
 In your `configuration.yaml` file add:
 
 ```yaml
-grocerylist:
+grocy:
   host: !secret grocy_host
   apikey: !secret grocy_apikey
 ```
@@ -46,5 +46,5 @@ Enjoy my card? Help me out for a couple of :beers: or a :coffee:!
 <a href="https://www.buymeacoffee.com/cgboJEh" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/white_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
 
 [buymecoffee]: https://www.buymeacoffee.com/cgboJEh
-[buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20beer-donate-yellow.svg?style=for-the-badge
+[buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge
 [hacs]: https://github.com/custom-components/hacs

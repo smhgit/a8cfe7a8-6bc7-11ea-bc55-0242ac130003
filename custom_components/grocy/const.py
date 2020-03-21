@@ -1,15 +1,21 @@
 """Constants for grocy."""
 
-VERSION = "0.0.22"
+VERSION = "0.0.23"
 
-DOMAIN = "grocerylist"
+DOMAIN = "grocy"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
 DOMAIN_EVENT = "grocy_updated"
 
 REQUIRED_FILES = [
+    "__init__.py",
     "const.py",
     "manifest.json",
     "sensor.py",
+    "services.py",
+    "grocy.py",
+    "grocy_api_client.py",
+    "store.py",
+    "store_api_client.py",
     ".translations/en.json"
 ]
 ISSUE_URL = "https://github.com/smhgit/grocery_list/issues"

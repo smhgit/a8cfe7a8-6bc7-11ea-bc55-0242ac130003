@@ -1,3 +1,5 @@
+'''General utils, not related specific to custom components'''
+
 import iso8601
 
 def parse_date(input_value):

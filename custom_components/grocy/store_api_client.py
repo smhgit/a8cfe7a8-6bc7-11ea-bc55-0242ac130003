@@ -1,6 +1,5 @@
 import logging
 import requests
-import json
 
 from abc import ABC, abstractmethod
 
@@ -164,35 +163,3 @@ class RamiLevyStoreApiClient(StoreApiClient):
             "picture": "https://static.rami-levy.co.il/storage/images/{}/{}/small.jpg".format(
                             response['barcode'], response['id'])
         }
-
-
-class Store:
-    """Online store"""
-    
-    def __init__(self, client):
-      self._client = client
-
-    @property
-    def name(self):
-        return self._client.name
-
-    def get_product_by_barcode(self, barcode: str) -> ProductData:
-      return self._client.get_product_by_barcode(barcode)
-
-
-def test():
-    store = Store(RamiLevyStoreApiClient())
-    p = store.get_product_by_barcode('100')
-    print('Pass: Found: ' + p.name) if p else print('Failure')
-    p = store.get_product_by_barcode('7290016096590')
-    print('Pass: Found: ' + p.name) if p else print('Failure')
-    p = store.get_product_by_barcode('7290102398065')
-    print('Pass: Found: ' + p.name) if p else print('Failure')
-    p = store.get_product_by_barcode('000')
-    print('Failure') if p else print('Pass: Product not exists')
-
-    store = Store(ShufersalStoreApiClient())
-    p = store.get_product_by_barcode('7290102395224')
-    print('Pass: Found: ' + p.name) if p else print('Failure')
-
-# test()

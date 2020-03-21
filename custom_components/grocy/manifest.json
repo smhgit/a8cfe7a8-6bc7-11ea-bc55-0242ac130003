@@ -1,6 +1,6 @@
 {
-  "domain": "grocerylist",
-  "name": "Grocery List",
+  "domain": "grocy",
+  "name": "Grocy",
   "documentation": "",
   "dependencies": [],
   "codeowners": ["@smhgit"],

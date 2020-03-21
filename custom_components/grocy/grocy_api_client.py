@@ -1,7 +1,5 @@
 import logging
 import requests
-import json
-import iso8601
 
 from typing import List
 

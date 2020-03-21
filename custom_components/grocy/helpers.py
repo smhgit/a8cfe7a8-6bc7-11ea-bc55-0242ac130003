@@ -1,3 +1,5 @@
+'''Helpers related to hass'''
+
 import logging
 import os
 
