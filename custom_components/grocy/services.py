@@ -20,7 +20,7 @@ from .const import (DOMAIN, DOMAIN_DATA, DOMAIN_EVENT,
                     ADD_PRODUCT_SERVICE, UPDATE_PRODUCT_SERVICE, REMOVE_PRODUCT_SERVICE,
                     PRODUCTS_NAME, SHOPPING_LIST_NAME,
                     EVENT_ADDED_TO_LIST, EVENT_SUBTRACT_FROM_LIST, EVENT_PRODUCT_ADDED,
-                    EVENT_PRODUCT_REMOVED)
+                    EVENT_PRODUCT_REMOVED, EVENT_PRODUCT_UPDATED)
 from .schema import (CONFIG_SCHEMA,
                     ADD_TO_LIST_SERVICE_SCHEMA, SUBTRACT_FROM_LIST_SERVICE_SCHEMA,
                     ADD_PRODUCT_SERVICE_SCHEMA, UPDATE_PRODUCT_SERVICE_SCHEMA,
@@ -147,7 +147,7 @@ async def async_add_product(hass, data):
                 "event": EVENT_GROCY_ERROR,
                 "message": "{} wasn't found at {} store".format(barcode, store.name)
             })
-    # Sync with grocy§
+    # Sync with grocy
     await hass.data[DOMAIN_DATA][DATA_DATA].async_update_data([PRODUCTS_NAME], True)
     # Add all non existing products
     for product in hass.data[DOMAIN_DATA].get(PRODUCTS_NAME):
@@ -158,6 +158,21 @@ async def async_add_product(hass, data):
                 "event": EVENT_PRODUCT_ADDED,
                 "entity_id": entity_id
             })
+
+async def async_update_product(hass, data):
+    domain_data = hass.data[DOMAIN_DATA]
+    entity = domain_data[DATA_ENTITIES].async_get_by_barcode(data[CONF_BARCODE])
+    if entity:
+        id = entity.device_state_attributes['_id']
+        domain_data[DATA_GROCY].update_product(id, product_group_id = data[CONF_PRODUCT_GROUP_ID])
+        # Sync with grocy
+        await domain_data[DATA_DATA].async_update_data([PRODUCTS_NAME], True)
+        entity.async_schedule_update_ha_state(True)
+        hass.bus.fire(DOMAIN_EVENT, {
+            "event": EVENT_PRODUCT_UPDATED,
+            "entity_id": entity.entity_id
+        })
+    return True
 
 async def async_remove_product(hass, data):
     # Can be product or barcode sensor
@@ -193,9 +208,6 @@ async def async_remove_product(hass, data):
             _LOGGER.debug('Failed to remove product from grocy {}'.format(product_id))
     else:
         _LOGGER.debug('Product {} doesn\'t exist'.format(entity.entity_id))
-    return True
-
-async def async_update_product(hass, data):
     return True
 
 async def async_sync_grocy(hass, data):

@@ -162,7 +162,8 @@ class GrocyApiClient(object):
         _LOGGER.debug("DELETE {} {}".format(req_url, resp.status_code))
         return resp
 
-    def add_product(self, id, name, barcode, description, product_group_id, qu_id_purchase, location, picture):
+    def add_product(self, id, name, barcode, description, product_group_id,
+                    qu_id_purchase, location, picture):
         req_url = urljoin(self._base_url, "objects/products")
         data = {
             "id": id,
@@ -184,6 +185,19 @@ class GrocyApiClient(object):
             "not_check_stock_fulfillment_for_recipes": "0"
         }
         return self.post(req_url, data=data)
+
+    def update_product(self, id, name = None, barcode = None, description = None,
+                       product_group_id = None, qu_id_purchase = None, location = None,
+                       picture = None):
+        req_url = urljoin(urljoin(self._base_url, "objects/products/"), str(id))
+        data = {}
+        if name: data['name'] = name
+        if barcode: data['barcode'] = barcode
+        if description: data['description'] = description
+        if product_group_id: data['product_group_id'] = product_group_id
+        if location: data['location'] = location
+        if picture: data['picture'] = picture
+        return self.put(req_url, data=data)        
 
     def add_product_group(self, id, name):
         req_url = urljoin(self._base_url, "objects/product_groups")

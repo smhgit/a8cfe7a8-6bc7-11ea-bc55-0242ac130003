@@ -34,13 +34,29 @@ add_product:
       description: Product description
       example: Olive oil
     product_group_id:
-      description: Product group (dairy, meat, fruits, vegetables, beverages, others)
+      description: Product group id.
       example: 15
     product_location_id:
-      description: Product location (e.g., panatry, fridge, others)
+      description: Product location id
       example: 1
     store:
       description: Store (rami levy, shufersal, mega)
+
+update_product:
+  description: Update product attributes
+  fields:
+    barcode:
+      description: Product barcode (EAN-13)
+      example: 7290002692478
+    product_description:
+      description: Product description
+      example: Olive oil
+    product_group_id:
+      description: Product group id
+      example: 15
+    product_location_id:
+      description: Product location id
+      example: 1
 
 remove_product:
   description: Remove product from grocy (and home assistant)
@@ -48,19 +64,6 @@ remove_product:
     entity_id:
       description: Product entity id(s) or barcode sensor entity
       example: "sensor.product100"
-
-update_product:
-  description: Update product field
-  fields:
-    barcode:
-      description: Barcode
-      example: 7290008464987
-    name:
-      description: Product parameter name to update
-      example: description
-    value:
-      description: Product parameter new value
-      example: "This is new description"
 
 sync:
   description: Synchronize with grocy database
