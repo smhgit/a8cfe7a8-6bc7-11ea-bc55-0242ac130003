@@ -59,13 +59,6 @@ def setup_services(hass):
         )
 
     @callback
-    def handle_update_product_service(call):
-        hass.async_add_job(async_update_product(hass, call.data))
-    hass.services.async_register(
-        DOMAIN, UPDATE_PRODUCT_SERVICE, handle_update_product_service, schema=UPDATE_PRODUCT_SERVICE_SCHEMA
-        )
-
-    @callback
     def handle_sync_grocy_service(call):
         hass.async_add_job(async_sync_grocy(hass, call.data))
     hass.services.async_register(
