@@ -23,8 +23,7 @@ from .const import (DOMAIN, DOMAIN_DATA, DOMAIN_EVENT,
                     EVENT_PRODUCT_REMOVED, EVENT_PRODUCT_UPDATED)
 from .schema import (CONFIG_SCHEMA,
                     ADD_TO_LIST_SERVICE_SCHEMA, SUBTRACT_FROM_LIST_SERVICE_SCHEMA,
-                    ADD_PRODUCT_SERVICE_SCHEMA, UPDATE_PRODUCT_SERVICE_SCHEMA,
-                    REMOVE_PRODUCT_SERVICE_SCHEMA)
+                    ADD_PRODUCT_SERVICE_SCHEMA, REMOVE_PRODUCT_SERVICE_SCHEMA)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -96,6 +95,7 @@ async def async_subtract_from_list(hass, data):
         else:
             _LOGGER.debug("Failed to subtarct product from list {}".format(entity_id))
 
+
 async def async_add_to_list(hass, data):
     domain_data = hass.data[DOMAIN_DATA]
     # Can be product or barcode sensor
@@ -120,48 +120,11 @@ async def async_add_to_list(hass, data):
             "entity_id": entity_id,
         })
 
-async def async_add_product(hass, data):
-    store = Store()
-    # Add all products to grocy (products can be ',' seperated)
-    for barcode in data[CONF_BARCODE].split(","):
-        product = store.get_product_by_barcode(barcode)
-        if product:
-            _LOGGER.debug('Found product: ' + product.name)
-            resp = hass.data[DOMAIN_DATA][DATA_GROCY].add_product(
-                product.id,
-                product.name,
-                product.barcode,
-                data[CONF_PRODUCT_DESCRIPTION],
-                data[CONF_PRODUCT_GROUP_ID],
-                product.qu_id_purchase,
-                data[CONF_PRODUCT_LOCATION_ID],
-                product.picture
-            )
-            if resp.status_code == 200:
-                _LOGGER.debug("Product {} was added".format(product.name))
-            else:
-                _LOGGER.debug("Failed to add product {} (already exists?)".format(product.name))
-        else:
-            _LOGGER.debug('Product was not found: ' + str(barcode))
-            hass.bus.fire(DOMAIN_EVENT, {
-                "event": EVENT_GROCY_ERROR,
-                "message": "{} wasn't found at {} store".format(barcode, store.name)
-            })
-    # Sync with grocy
-    await hass.data[DOMAIN_DATA][DATA_DATA].async_update_data([PRODUCTS_NAME], True)
-    # Add all non existing products
-    for product in hass.data[DOMAIN_DATA].get(PRODUCTS_NAME):
-        entity_id = ProductSensor.to_entity_id(product.id)
-        if not hass.data[DOMAIN_DATA][DATA_ENTITIES].is_exists(entity_id):
-            hass.add_job(ProductSensor(hass, product).async_add())
-            hass.bus.fire(DOMAIN_EVENT, {
-                "event": EVENT_PRODUCT_ADDED,
-                "entity_id": entity_id
-            })
 
-async def async_update_product(hass, data):
+async def async_add_product(hass, data):
     domain_data = hass.data[DOMAIN_DATA]
     entity = domain_data[DATA_ENTITIES].async_get_by_barcode(data[CONF_BARCODE])
+    # If entity (product) exists, update it, otherwise, add new entity (product)
     if entity:
         id = entity.device_state_attributes['_id']
         domain_data[DATA_GROCY].update_product(id, product_group_id = data[CONF_PRODUCT_GROUP_ID],
@@ -173,7 +136,45 @@ async def async_update_product(hass, data):
             "event": EVENT_PRODUCT_UPDATED,
             "entity_id": entity.entity_id
         })
-    return True
+    else:
+        # Search store for product
+        store_product = Store().get_product_by_barcode(data[CONF_BARCODE])
+        if not store_product:
+            _LOGGER.debug('Product was not found: ' + str(data[CONF_BARCODE]))
+            hass.bus.fire(DOMAIN_EVENT, {
+                "event": EVENT_GROCY_ERROR,
+                "message": "{} wasn't found at {} store".format(data[CONF_BARCODE], store.name)
+            })
+            return True
+        _LOGGER.debug('Found product: ' + store_product.name)
+        # Add product to grocy
+        resp = domain_data[DATA_GROCY].add_product(
+            store_product.id,
+            store_product.name,
+            store_product.barcode,
+            data[CONF_PRODUCT_DESCRIPTION],
+            data[CONF_PRODUCT_GROUP_ID],
+            store_product.qu_id_purchase,
+            data[CONF_PRODUCT_LOCATION_ID],
+            store_product.picture
+        )
+        if resp.status_code != 200:
+            _LOGGER.debug("Failed to add product {} (already exists?)".format(store_product.name))
+            return True
+        # Sync with grocy
+        await domain_data[DATA_DATA].async_update_data([PRODUCTS_NAME], True)
+        # Add product entitys
+        for product in domain_data[PRODUCTS_NAME]:
+            if product.id == store_product.id:
+                entity_id = ProductSensor.to_entity_id(product.id)
+                if not domain_data[DATA_ENTITIES].is_exists(entity_id):
+                    hass.add_job(ProductSensor(hass, product).async_add())
+                    hass.bus.fire(DOMAIN_EVENT, {
+                        "event": EVENT_PRODUCT_ADDED,
+                        "entity_id": entity_id
+                    })
+                    _LOGGER.debug("Product {} was added".format(product.name))
+
 
 async def async_remove_product(hass, data):
     # Can be product or barcode sensor
@@ -210,6 +211,7 @@ async def async_remove_product(hass, data):
     else:
         _LOGGER.debug('Product {} doesn\'t exist'.format(entity.entity_id))
     return True
+
 
 async def async_sync_grocy(hass, data):
     domain_data = hass.data[DOMAIN_DATA]

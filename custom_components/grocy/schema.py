@@ -41,13 +41,6 @@ ADD_PRODUCT_SERVICE_SCHEMA = vol.Schema({
     vol.Optional(CONF_PRODUCT_DESCRIPTION, default=DEFAULT_PRODUCT_DESCRIPTION): cv.string
 })
 
-UPDATE_PRODUCT_SERVICE_SCHEMA = vol.Schema({
-    vol.Required(CONF_BARCODE): cv.string,
-    vol.Optional(CONF_PRODUCT_GROUP_ID): cv.positive_int,
-    vol.Optional(CONF_PRODUCT_LOCATION_ID): cv.positive_int,
-    vol.Optional(CONF_PRODUCT_DESCRIPTION): cv.string
-})
-
 REMOVE_PRODUCT_SERVICE_SCHEMA = vol.Schema({
     vol.Required(CONF_ENTITY_ID): cv.entity_ids
 })

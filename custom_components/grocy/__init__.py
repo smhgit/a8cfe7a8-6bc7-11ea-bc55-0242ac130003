@@ -220,7 +220,8 @@ class Entities:
 
     def async_get_by_barcode(self, barcode):
         for entity in self._entities:
-            if entity.device_state_attributes['_barcodes'][0] == barcode:
+            barcodes = entity.device_state_attributes.get('_barcodes')
+            if barcodes and barcodes[0] == barcode:
                 return entity
         return None
 

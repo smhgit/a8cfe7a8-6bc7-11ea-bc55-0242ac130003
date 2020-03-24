@@ -4,5 +4,7 @@
   "documentation": "",
   "dependencies": [],
   "codeowners": ["@smhgit"],
-  "requirements": []
+  "requirements": [
+    "integrationhelper"
+  ]
 }

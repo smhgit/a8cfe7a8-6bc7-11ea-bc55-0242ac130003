@@ -25,7 +25,7 @@ subtract_from_list:
       example: 1
 
 add_product:
-  description: Add new product to grocy
+  description: Add / update grocy product
   fields:
     barcode:
       description: Product barcode (EAN-13)
@@ -40,23 +40,7 @@ add_product:
       description: Product location id
       example: 1
     store:
-      description: Store (rami levy, shufersal, mega)
-
-update_product:
-  description: Update product attributes
-  fields:
-    barcode:
-      description: Product barcode (EAN-13)
-      example: 7290002692478
-    product_description:
-      description: Product description
-      example: Olive oil
-    product_group_id:
-      description: Product group id
-      example: 15
-    product_location_id:
-      description: Product location id
-      example: 1
+      description: Online store
 
 remove_product:
   description: Remove product from grocy (and home assistant)

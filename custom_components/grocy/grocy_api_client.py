@@ -195,7 +195,7 @@ class GrocyApiClient(object):
         if barcode: data['barcode'] = barcode
         if description: data['description'] = description
         if product_group_id: data['product_group_id'] = product_group_id
-        if location_id: data['location_id'] = location
+        if location_id: data['location_id'] = location_id
         if picture: data['picture'] = picture
         return self.put(req_url, data=data)        
 
