@@ -163,7 +163,7 @@ class GrocyApiClient(object):
         return resp
 
     def add_product(self, id, name, barcode, description, product_group_id,
-                    qu_id_purchase, location, picture):
+                    qu_id_purchase, location_id, picture):
         req_url = urljoin(self._base_url, "objects/products")
         data = {
             "id": id,
@@ -173,7 +173,7 @@ class GrocyApiClient(object):
             "product_group_id": product_group_id,
             "description": description,
             "qu_id_stock": qu_id_purchase,
-            "location_id": location,
+            "location_id": location_id,
             "qu_factor_purchase_to_stock": "1.0",
             "min_stock_amount": "1",
             "default_best_before_days": "0",
@@ -187,7 +187,7 @@ class GrocyApiClient(object):
         return self.post(req_url, data=data)
 
     def update_product(self, id, name = None, barcode = None, description = None,
-                       product_group_id = None, qu_id_purchase = None, location = None,
+                       product_group_id = None, qu_id_purchase = None, location_id = None,
                        picture = None):
         req_url = urljoin(urljoin(self._base_url, "objects/products/"), str(id))
         data = {}
@@ -195,7 +195,7 @@ class GrocyApiClient(object):
         if barcode: data['barcode'] = barcode
         if description: data['description'] = description
         if product_group_id: data['product_group_id'] = product_group_id
-        if location: data['location'] = location
+        if location_id: data['location_id'] = location
         if picture: data['picture'] = picture
         return self.put(req_url, data=data)        
 

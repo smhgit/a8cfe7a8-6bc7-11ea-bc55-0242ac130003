@@ -78,15 +78,15 @@ class Grocy(object):
         return self._api_client.get_products()
 
     def add_product(self, id, name, barcode, description,
-                    product_group_id, qu_id_purchase, location, picture):
+                    product_group_id, qu_id_purchase, location_id, picture):
         return self._api_client.add_product(id, name, barcode, description,
-                                            product_group_id, qu_id_purchase, location, picture)
+                                            product_group_id, qu_id_purchase, location_id, picture)
 
     def update_product(self, id, name = None, barcode = None, description = None,
-                       product_group_id = None, qu_id_purchase = None, location = None,
+                       product_group_id = None, qu_id_purchase = None, location_id = None,
                        picture = None):
         return self._api_client.update_product(id, name, barcode, description,
-                                               product_group_id, qu_id_purchase, location, picture)
+                                               product_group_id, qu_id_purchase, location_id, picture)
 
     def remove_product(self, id):
         return self._api_client.remove_objects_products(id)

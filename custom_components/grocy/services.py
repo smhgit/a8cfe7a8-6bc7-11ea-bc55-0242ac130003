@@ -164,7 +164,8 @@ async def async_update_product(hass, data):
     entity = domain_data[DATA_ENTITIES].async_get_by_barcode(data[CONF_BARCODE])
     if entity:
         id = entity.device_state_attributes['_id']
-        domain_data[DATA_GROCY].update_product(id, product_group_id = data[CONF_PRODUCT_GROUP_ID])
+        domain_data[DATA_GROCY].update_product(id, product_group_id = data[CONF_PRODUCT_GROUP_ID],
+            location_id = data[CONF_PRODUCT_LOCATION_ID])
         # Sync with grocy
         await domain_data[DATA_DATA].async_update_data([PRODUCTS_NAME], True)
         entity.async_schedule_update_ha_state(True)
