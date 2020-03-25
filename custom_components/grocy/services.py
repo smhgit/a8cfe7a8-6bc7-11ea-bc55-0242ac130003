@@ -131,7 +131,7 @@ async def async_add_product(hass, data):
         })
     else:
         # Search store for product
-        store_product = Store().get_product_by_barcode(data[CONF_BARCODE])
+        store_product = Store(data[CONF_STORE]).get_product_by_barcode(data[CONF_BARCODE])
         if not store_product:
             _LOGGER.debug('Product was not found: ' + str(data[CONF_BARCODE]))
             hass.bus.fire(DOMAIN_EVENT, {

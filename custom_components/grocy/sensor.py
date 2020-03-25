@@ -7,6 +7,8 @@ from datetime import timedelta
 from homeassistant.helpers.entity import Entity, async_generate_entity_id
 from homeassistant.components.sensor import ENTITY_ID_FORMAT
 
+from .store import Store
+
 from .const import (VERSION, DOMAIN, DOMAIN_DATA, DATA_ENTITIES,
                     PRODUCTS_NAME, SHOPPING_LISTS_NAME, SHOPPING_LIST_NAME, LOCATIONS_NAME,
                     QUANTITY_UNITS_NAME, PRODUCT_GROUPS_NAME)
@@ -14,6 +16,7 @@ from .const import (VERSION, DOMAIN, DOMAIN_DATA, DATA_ENTITIES,
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(minutes=5)
+
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the sensor platform."""
@@ -120,6 +123,9 @@ class ProductSensor(GrocySensorEntity):
             if item.id == product.qu_id_purchase:
                 self._attributes['_qu_purchase_name'] = item.name
                 break
+        store_product = Store().get_product_by_barcode(product.barcodes[0])
+        if store_product:
+            self._attributes['_price'] = store_product.price
 
     @staticmethod
     def to_entity_id(id):

@@ -1,17 +1,13 @@
 '''Online grocery store'''
 
-import logging
-
-from .store_api_client import RamiLevyStoreApiClient, ShufersalStoreApiClient
-
-_LOGGER = logging.getLogger(__name__)
+from .store_api_client import get_store_api_client
 
 
 class Store:
     """Online store"""
     
-    def __init__(self):
-      self._client = RamiLevyStoreApiClient()
+    def __init__(self, store_name: str = 'default'):
+      self._client = get_store_api_client(store_name)
 
     @property
     def name(self):

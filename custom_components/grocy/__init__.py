@@ -78,40 +78,6 @@ def setup_grocy(conf):
         return None
     _LOGGER.debug('Connect to grocy: ' + grocy_host)
 
-    # product_groups = {
-    #     'Sweets': 1,
-    #     'Bakery': 2,
-    #     'Canned': 3,
-    #     'Butchery': 4,
-    #     'Fruits': 5,
-    #     'Refrigerated': 6,
-    #     'Beverages': 7,
-    #     'Frozen': 8,
-    #     'Grains & Pasta': 9,
-    #     'Dairy': 10,
-    #     'Fish': 12,
-    #     'Personal hygiene': 13,
-    #     'Vegetables': 14,
-    #     'Others': 15
-    # }
-    # for name, id in product_groups.items():
-    #     grocy.add_product_group(str(id), name)
-
-    # locations = {
-    #     'Pantry': 1,
-    #     'Fridge': 2,
-    #     'Freeze': 3,
-    #     'Other': 4
-    # }
-    # for name, id in locations.items():
-    #     grocy.add_location(str(id), name)
-
-    # lists = {
-    #     'Grocery List': 1
-    # }
-    # for name, id in lists.items():
-    #     grocy.add_shopping_list(str(id), name)
-
     return grocy
 
 

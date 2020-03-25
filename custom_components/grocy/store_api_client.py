@@ -88,9 +88,10 @@ class StoreApiClient(ABC):
 
 class ShufersalStoreApiClient(StoreApiClient):
     """Shufersal online store client"""
+    name = 'Shufersal'
 
     def __init__(self):
-        self._name = 'Shufersal'
+        self._name = ShufersalStoreApiClient.name
         self._base_url = 'https://www.shufersal.co.il'
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
@@ -123,9 +124,10 @@ class ShufersalStoreApiClient(StoreApiClient):
 
 class RamiLevyStoreApiClient(StoreApiClient):
     """Rami levy online store cline"""
+    name = 'Rami Levy'
 
     def __init__(self):
-        self._name = 'Rami Levy'
+        self._name = RamiLevyStoreApiClient.name
         self._store_id = 331
         self._base_url = 'https://www.rami-levy.co.il'
 
@@ -163,3 +165,11 @@ class RamiLevyStoreApiClient(StoreApiClient):
             "picture": "https://static.rami-levy.co.il/storage/images/{}/{}/small.jpg".format(
                             response['barcode'], response['id'])
         }
+
+
+def get_store_api_client(store_name: str = 'default'):
+    if store_name.lower() == RamiLevyStoreApiClient.name.lower():
+        return RamiLevyStoreApiClient()
+    elif store_name.lower() == ShufersalStoreApiClient.name.lower():
+        return ShufersalStoreApiClient()
+    return RamiLevyStoreApiClient()
