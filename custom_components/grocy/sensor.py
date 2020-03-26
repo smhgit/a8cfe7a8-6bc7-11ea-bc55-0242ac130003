@@ -106,10 +106,12 @@ class ProductSensor(GrocySensorEntity):
             if item.product_id == product.id:
                 self._state = item.amount
                 break
-        # Update attributes (remove leading '_')
+        # Set attributes (remove leading '_' and flatten userfields)
         product_attributes = vars(product)
         for key in product_attributes.keys():
             self._attributes[key[1:]] = product_attributes[key]
+        self._attributes['price'] = self._attributes['userfields']['price']
+        del self._attributes['userfields']
         # Update extra attributes
         self._attributes['product_group_name'] = 'Other'
         self._attributes['location_name'] = 'Other'
