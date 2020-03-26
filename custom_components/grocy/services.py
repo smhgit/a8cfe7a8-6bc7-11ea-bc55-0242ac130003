@@ -73,10 +73,10 @@ async def async_subtract_from_list(hass, data):
     entity = domain_data[DATA_ENTITIES].async_get(entity_id)
     if entity:
         resp = domain_data[DATA_GROCY].remove_product_in_shopping_list(
-            entity.device_state_attributes['_id'], data[CONF_SHOPPING_LIST_ID], data[CONF_AMOUNT]
+            entity.device_state_attributes['id'], data[CONF_SHOPPING_LIST_ID], data[CONF_AMOUNT]
             )
         if resp.status_code == 204:
-            _LOGGER.debug("Product was subtarcted from list {}".format(entity_id))
+            _LOGGER.debug(f"Product was subtarcted from list {entity_id}")
             await domain_data[DATA_DATA].async_update_data([SHOPPING_LIST_NAME], True)
             entity.async_schedule_update_ha_state(True)
             shopping_list_entity_id = domain_data[DATA_ENTITIES].async_get(ShoppingListSensor.to_entity_id(data[CONF_SHOPPING_LIST_ID]))
@@ -103,7 +103,7 @@ async def async_add_to_list(hass, data):
                 entity = domain_data[DATA_ENTITIES].async_get(entity_id)
     if entity:
         # Product was found, add it to shopping list
-        domain_data[DATA_GROCY].add_product_to_shopping_list(entity.device_state_attributes['_id'], data[CONF_SHOPPING_LIST_ID], data[CONF_AMOUNT])
+        domain_data[DATA_GROCY].add_product_to_shopping_list(entity.device_state_attributes['id'], data[CONF_SHOPPING_LIST_ID], data[CONF_AMOUNT])
         await domain_data[DATA_DATA].async_update_data([SHOPPING_LIST_NAME], True)
         entity.async_schedule_update_ha_state(True)
         shopping_list_entity_id = domain_data[DATA_ENTITIES].async_get(ShoppingListSensor.to_entity_id(data[CONF_SHOPPING_LIST_ID]))
@@ -119,7 +119,7 @@ async def async_add_product(hass, data):
     entity = domain_data[DATA_ENTITIES].async_get_by_barcode(data[CONF_BARCODE])
     # If entity (product) exists, update it, otherwise, add new entity (product)
     if entity:
-        id = entity.device_state_attributes['_id']
+        id = entity.device_state_attributes['id']
         domain_data[DATA_GROCY].update_product(id, product_group_id = data[CONF_PRODUCT_GROUP_ID],
             location_id = data[CONF_PRODUCT_LOCATION_ID])
         # Sync with grocy
@@ -133,13 +133,13 @@ async def async_add_product(hass, data):
         # Search store for product
         store_product = Store(data[CONF_STORE]).get_product_by_barcode(data[CONF_BARCODE])
         if not store_product:
-            _LOGGER.debug('Product was not found: ' + str(data[CONF_BARCODE]))
+            _LOGGER.debug(f"Product was not found: {data[CONF_BARCODE]}")
             hass.bus.fire(DOMAIN_EVENT, {
                 "event": EVENT_GROCY_ERROR,
                 "message": "{} wasn't found at {} store".format(data[CONF_BARCODE], store.name)
             })
             return True
-        _LOGGER.debug('Found product: ' + store_product.name)
+        _LOGGER.debug(f"Found product: {store_product.name}")
         # Add product to grocy
         resp = domain_data[DATA_GROCY].add_product(
             store_product.id,
@@ -152,7 +152,7 @@ async def async_add_product(hass, data):
             store_product.picture
         )
         if resp.status_code != 200:
-            _LOGGER.debug("Failed to add product {} (already exists?)".format(store_product.name))
+            _LOGGER.debug(f"Failed to add product {store_product.name} (already exists?)")
             return True
         # Sync with grocy
         await domain_data[DATA_DATA].async_update_data([PRODUCTS_NAME], True)
@@ -166,7 +166,7 @@ async def async_add_product(hass, data):
                         "event": EVENT_PRODUCT_ADDED,
                         "entity_id": entity_id
                     })
-                    _LOGGER.debug("Product {} was added".format(product.name))
+                    _LOGGER.debug(f"Product {product.name} was added")
 
 
 async def async_remove_product(hass, data):
@@ -183,9 +183,9 @@ async def async_remove_product(hass, data):
                 entity_id = 'sensor.product' + str(product.id)
                 entity = hass.data[DOMAIN_DATA][DATA_ENTITIES].async_get(entity_id)
     if entity:
-        _LOGGER.debug('Remove product {}'.format(entity.entity_id))
+        _LOGGER.debug(f"Remove product {entity.entity_id}")
         # Remove from grocy ERP
-        product_id = entity.device_state_attributes['_id']
+        product_id = entity.device_state_attributes['id']
         resp = hass.data[DOMAIN_DATA][DATA_GROCY].remove_product(product_id)
         if resp.status_code == 204:
             # Remove entity from home assisatnt
@@ -200,9 +200,9 @@ async def async_remove_product(hass, data):
                 "entity_id": entity_id
             })
         else:
-            _LOGGER.debug('Failed to remove product from grocy {}'.format(product_id))
+            _LOGGER.debug(f"Failed to remove product from grocy {product_id}")
     else:
-        _LOGGER.debug('Product {} doesn\'t exist'.format(entity.entity_id))
+        _LOGGER.debug(f"Product {entity.entity_id} doesn\'t exist")
     return True
 
 

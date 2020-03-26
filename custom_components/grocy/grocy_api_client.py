@@ -87,7 +87,7 @@ class ProductData(GrocyObject):
             self._barcodes = barcodes_raw.split(",")
 
         self._userfields = {
-            "price": 0.0
+            "price": "0.0"
         }
         
     @property
@@ -117,6 +117,10 @@ class ProductData(GrocyObject):
     @userfields.setter
     def userfields(self, value):
         self._userfields = value
+
+    @property
+    def price(self) -> float:
+        return parse_float(self._userfields['price'])
 
 
 class ShoppingList(GrocyObject):

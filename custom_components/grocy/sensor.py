@@ -165,7 +165,7 @@ class ShoppingListSensor(GrocySensorEntity):
                 self._attributes['total_amount'] += item.amount
                 for product in self.hass.data[DOMAIN_DATA][PRODUCTS_NAME]:
                     if product.id == item.product_id:
-                        # self._attributes['total_price'] += (product.price * item.amount)
+                        self._attributes['total_price'] += (product.price * item.amount)
                         break
 
     @staticmethod
