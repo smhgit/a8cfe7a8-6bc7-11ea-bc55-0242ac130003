@@ -74,8 +74,12 @@ class Grocy(object):
     def product_groups(self) -> List[ProductGroupData]:
         return self._api_client.get_product_groups()
 
-    def get_products(self) -> List[ProductData]:
-        return self._api_client.get_products()
+    def get_products(self, userfields:bool = False) -> List[ProductData]:
+        products = self._api_client.get_products()
+        if userfields:
+            for product in products:
+                product.userfields = self._api_client.get_userfields('products', product.id)
+        return products
 
     def add_product(self, id, name, barcode, description,
                     product_group_id, qu_id_purchase, location_id, picture):
@@ -131,5 +135,11 @@ class Grocy(object):
     def complete_product_in_shopping_list(self, id: int, complete: int = 1):
         return self._api_client.complete_product_in_shopping_list(id, complete)
 
+    def get_userfields(self, entity: str, object_id: int):
+        return self._api_client.get_userfields(entity, object_id)
+        
+    def set_userfields(self, entity: str, object_id: int, key: str, value):
+        return self._api_client.set_userfields(entity, object_id, key, value)
+        
     def get_last_db_changed(self):
         return self._api_client.get_last_db_changed()

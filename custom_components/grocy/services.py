@@ -211,17 +211,24 @@ async def async_sync_grocy(hass, data):
     # Force update from grocy
     await domain_data[DATA_DATA].async_update_data(force=True)
     # Add missing products
-    for product in domain_data.get(PRODUCTS_NAME):
+    for product in domain_data[PRODUCTS_NAME]:
         entity_id = ProductSensor.to_entity_id(product.id)
         if not domain_data[DATA_ENTITIES].is_exists(entity_id):
             hass.add_job(ProductSensor(hass, product).async_add())
-            _LOGGER.debug('Sync add product: {}'.format(entity_id))
+            _LOGGER.debug(f"Sync add product: {entity_id}")
     # Remove floating products
     for entity in domain_data[DATA_ENTITIES].async_get_all_by_class_name('ProductSensor'):
-        if not contains(domain_data.get(PRODUCTS_NAME), lambda p: p.id == entity.device_state_attributes['_id']):
+        if not contains(domain_data[PRODUCTS_NAME], lambda p: p.id == entity.device_state_attributes['id']):
             hass.add_job(entity.async_remove)
-            _LOGGER.debug('Remove product: {}'.format(entity.entity_id))
+            _LOGGER.debug(f"Remove product: {entity.entity_id}")
     _LOGGER.debug('Sync done')
+    # Update products userfields
+    for product in domain_data[PRODUCTS_NAME]:
+        store_product = Store().get_product_by_barcode(product.barcodes[0])
+        if store_product:
+            domain_data[DATA_GROCY].set_userfields('products', product.id, 'price', store_product.price)
+    # Force update to get userfieldss
+    await domain_data[DATA_DATA].async_update_data(force=True)
     # Update all products
     for entity in domain_data[DATA_ENTITIES].async_get_all():
         entity.async_schedule_update_ha_state(True)

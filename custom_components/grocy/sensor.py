@@ -24,10 +24,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     # Save it to enable adding products via service
     GrocySensorEntity.async_add_entities = async_add_entities
 
-    for product in hass.data[DOMAIN_DATA].get(PRODUCTS_NAME):
+    for product in hass.data[DOMAIN_DATA][PRODUCTS_NAME]:
         hass.add_job(ProductSensor(hass, product).async_add())
 
-    for shopping_list in hass.data[DOMAIN_DATA].get(SHOPPING_LISTS_NAME):
+    for shopping_list in hass.data[DOMAIN_DATA][SHOPPING_LISTS_NAME]:
         hass.add_job(ShoppingListSensor(hass, shopping_list).async_add())
 
     hass.add_job(GrocySensor(hass).async_add())
@@ -76,6 +76,7 @@ class ProductSensor(GrocySensorEntity):
         super().__init__(hass)
         self._state = 0
         self._name = product.name
+        self._attributes = {}
         self._entity_picture = product.picture_file_name
         self._product_id = product.id
         self._icon = 'mdi:cart-outline'
@@ -92,40 +93,39 @@ class ProductSensor(GrocySensorEntity):
 
     async def async_update(self) -> None:
         """Fetch new state data for the sensor."""
-        _LOGGER.debug("Update product: " + str(self._name))
+        _LOGGER.debug(f"Update product: {self._name}")
         # Get the grocy product
-        for product in self.hass.data[DOMAIN_DATA].get(PRODUCTS_NAME):
+        for product in self.hass.data[DOMAIN_DATA][PRODUCTS_NAME]:
             if product.id == self._product_id:
                 break
         if not product:
             return
         # Update state (amount)
         self._state = 0
-        for item in self.hass.data[DOMAIN_DATA].get(SHOPPING_LIST_NAME):
+        for item in self.hass.data[DOMAIN_DATA][SHOPPING_LIST_NAME]:
             if item.product_id == product.id:
                 self._state = item.amount
                 break
-        # Update attributes
-        self._attributes = vars(product)
+        # Update attributes (remove leading '_')
+        product_attributes = vars(product)
+        for key in product_attributes.keys():
+            self._attributes[key[1:]] = product_attributes[key]
         # Update extra attributes
-        self._attributes['_product_group_name'] = 'Other'
-        self._attributes['_location_name'] = 'Other'
-        self._attributes['_qu_purchase_name'] = 'Other'
-        for item in self.hass.data[DOMAIN_DATA].get(PRODUCT_GROUPS_NAME):
+        self._attributes['product_group_name'] = 'Other'
+        self._attributes['location_name'] = 'Other'
+        self._attributes['qu_purchase_name'] = 'Other'
+        for item in self.hass.data[DOMAIN_DATA][PRODUCT_GROUPS_NAME]:
             if item.id == product.product_group_id:
-                self._attributes['_product_group_name'] = item.name
+                self._attributes['product_group_name'] = item.name
                 break
-        for item in self.hass.data[DOMAIN_DATA].get(LOCATIONS_NAME):
+        for item in self.hass.data[DOMAIN_DATA][LOCATIONS_NAME]:
             if item.id == product.location_id:
-                self._attributes['_location_name'] = item.name
+                self._attributes['location_name'] = item.name
                 break
-        for item in self.hass.data[DOMAIN_DATA].get(QUANTITY_UNITS_NAME):
+        for item in self.hass.data[DOMAIN_DATA][QUANTITY_UNITS_NAME]:
             if item.id == product.qu_id_purchase:
-                self._attributes['_qu_purchase_name'] = item.name
+                self._attributes['qu_purchase_name'] = item.name
                 break
-        store_product = Store().get_product_by_barcode(product.barcodes[0])
-        if store_product:
-            self._attributes['_price'] = store_product.price
 
     @staticmethod
     def to_entity_id(id):
@@ -141,8 +141,7 @@ class ShoppingListSensor(GrocySensorEntity):
         self._state = 0
         self._shopping_list_id = shopping_list.id
         self._attributes = {
-            "description": shopping_list.description,
-            "amount": 0
+            "description": shopping_list.description
         }
         self._name = "ShoopingList{}".format(shopping_list.id)
         self._icon = 'mdi:cart-outline'
@@ -154,14 +153,18 @@ class ShoppingListSensor(GrocySensorEntity):
 
     async def async_update(self) -> None:
         """Fetch new state data for the sensor."""
-        _LOGGER.debug("Update shopping list: " + self._name)
-        # Update state and attributes
+        _LOGGER.debug(f"Update shopping list: {self._name}")
         self._state = 0
-        self._attributes['amount'] = 0
-        for item in self.hass.data[DOMAIN_DATA].get(SHOPPING_LIST_NAME):
+        self._attributes['total_amount'] = 0
+        self._attributes['total_price'] = 0
+        for item in self.hass.data[DOMAIN_DATA][SHOPPING_LIST_NAME]:
             if item.shopping_list_id == self._shopping_list_id:
                 self._state += 1
-                self._attributes['amount'] += item.amount
+                self._attributes['total_amount'] += item.amount
+                for product in self.hass.data[DOMAIN_DATA][PRODUCTS_NAME]:
+                    if product.id == item.product_id:
+                        # self._attributes['total_price'] += (product.price * item.amount)
+                        break
 
     @staticmethod
     def to_entity_id(id):

@@ -1,8 +1,8 @@
 import logging
 import requests
 
+from datetime import datetime
 from typing import List
-
 from urllib.parse import urljoin
 
 from .utils import parse_date, parse_int, parse_float
@@ -85,6 +85,10 @@ class ProductData(GrocyObject):
             self._barcodes = None
         else:
             self._barcodes = barcodes_raw.split(",")
+
+        self._userfields = {
+            "price": 0.0
+        }
         
     @property
     def product_group_id(self) -> int:
@@ -105,6 +109,14 @@ class ProductData(GrocyObject):
     @property
     def barcodes(self) -> List[str]:
         return self._barcodes
+
+    @property
+    def userfields(self):
+        return self._userfields
+
+    @userfields.setter
+    def userfields(self, value):
+        self._userfields = value
 
 
 class ShoppingList(GrocyObject):
@@ -129,6 +141,51 @@ class QuantityUnitData(GrocyObject):
         self._name_plural = parsed_json.get('name_plural')
 
 
+class ProductDetailsResponse(object):
+    def __init__(self, parsed_json):
+        self._last_purchased = parse_date(parsed_json.get('last_purchased'))
+        self._last_used = parse_date(parsed_json.get('last_used'))
+        self._stock_amount = parse_int(parsed_json.get('stock_amount'))
+        self._stock_amount_opened = parse_int(parsed_json.get('stock_amount_opened'))
+        self._next_best_before_date = parse_date(parsed_json.get('next_best_before_date'))
+        self._last_price = parse_float(parsed_json.get('last_price'))
+
+        self._product = ProductData(parsed_json.get('product'))
+
+        self._quantity_unit_purchase = QuantityUnitData(parsed_json.get('quantity_unit_purchase'))
+        self._quantity_unit_stock = QuantityUnitData(parsed_json.get('quantity_unit_stock'))
+
+        self._location = LocationData(parsed_json.get('location'))
+
+    @property
+    def last_purchased(self) -> datetime:
+        return self._last_purchased
+
+    @property
+    def last_used(self) -> datetime:
+        return self._last_used
+
+    @property
+    def stock_amount(self) -> int:
+        return self._stock_amount
+
+    @property
+    def stock_amount_opened(self) -> int:
+        return self._stock_amount_opened
+
+    @property
+    def next_best_before_date(self) -> datetime:
+        return self._next_best_before_date
+
+    @property
+    def last_price(self) -> float:
+        return self._last_price
+
+    @property
+    def product(self) -> ProductData:
+        return self._product
+
+
 class GrocyApiClient(object):
     def __init__(self, base_url, api_key, port: int = DEFAULT_PORT_NUMBER, verify_ssl = True):
         self._base_url = '{}:{}/api/'.format(base_url, port)
@@ -142,29 +199,32 @@ class GrocyApiClient(object):
                 "GROCY-API-KEY": api_key
             }
 
-    def get(self, req_url):
+    def _do_get_request(self, end_url: str):
+        req_url = urljoin(self._base_url, end_url)
         resp = requests.get(req_url, verify=self._verify_ssl, headers=self._headers)
-        _LOGGER.debug("GET {} {}".format(req_url, resp.status_code))
+        _LOGGER.debug(f"GET {req_url} {resp.status_code}")
         return resp
 
-    def post(self, req_url, data):
+    def _do_post_request(self, end_url: str, data):
+        req_url = urljoin(self._base_url, end_url)
         resp = requests.post(req_url, verify=self._verify_ssl, headers=self._headers, data=data)
-        _LOGGER.debug("POST {} {}".format(req_url, resp.status_code))
+        _LOGGER.debug(f"POST {req_url} {resp.status_code}")
         return resp
 
-    def put(self, req_url, data):
+    def _do_put_request(self, end_url: str, data):
+        req_url = urljoin(self._base_url, end_url)
         resp = requests.put(req_url, verify=self._verify_ssl, headers=self._headers, data=data)
-        _LOGGER.debug("PUT {} {}".format(req_url, resp.status_code))
+        _LOGGER.debug(f"PUT {req_url} {resp.status_code}")
         return resp
 
-    def delete(self, req_url):
+    def _do_delete_request(self, end_url: str):
+        req_url = urljoin(self._base_url, end_url)
         resp = requests.delete(req_url, verify=self._verify_ssl, headers=self._headers)
-        _LOGGER.debug("DELETE {} {}".format(req_url, resp.status_code))
+        _LOGGER.debug(f"DELETE {req_url} {resp.status_code}")
         return resp
 
     def add_product(self, id, name, barcode, description, product_group_id,
                     qu_id_purchase, location_id, picture):
-        req_url = urljoin(self._base_url, "objects/products")
         data = {
             "id": id,
             "name": name,
@@ -184,12 +244,11 @@ class GrocyApiClient(object):
             "tare_weight": "0.0",
             "not_check_stock_fulfillment_for_recipes": "0"
         }
-        return self.post(req_url, data=data)
+        return self._do_post_request("objects/products", data=data)
 
     def update_product(self, id, name = None, barcode = None, description = None,
                        product_group_id = None, qu_id_purchase = None, location_id = None,
                        picture = None):
-        req_url = urljoin(urljoin(self._base_url, "objects/products/"), str(id))
         data = {}
         if name: data['name'] = name
         if barcode: data['barcode'] = barcode
@@ -197,91 +256,79 @@ class GrocyApiClient(object):
         if product_group_id: data['product_group_id'] = product_group_id
         if location_id: data['location_id'] = location_id
         if picture: data['picture'] = picture
-        return self.put(req_url, data=data)        
+        return self._do_put_request(f"objects/products/{id}", data=data)        
 
     def add_product_group(self, id, name):
-        req_url = urljoin(self._base_url, "objects/product_groups")
         data = {
             "id": id,
             "name": name
         }
-        return self.post(req_url, data=data)
+        return self._do_post_request("objects/product_groups", data=data)
 
     def remove_objects_products(self, id):
-        req_url = urljoin(urljoin(self._base_url, "objects/products/"), str(id))
-        return self.delete(req_url)
+        return self._do_delete_request(f"objects/products/{id}")
 
     def add_location(self, id, name):
-        req_url = urljoin(self._base_url, "objects/locations")
         data = {
             "id": id,
             "name": name
         }
-        return self.post(req_url, data=data)
+        return self._do_post_request("objects/locations", data=data)
 
     def add_quantity_unit(self, id, name):
-        req_url = urljoin(self._base_url, "objects/quantity_units")
         data = {
             "id": id,
             "name": name
         }
-        return self.post(req_url, data=data)
+        return self._do_post_request("objects/quantity_units", data=data)
 
     def add_shopping_list(self, id, name):
-        req_url = urljoin(self._base_url, "objects/shopping_lists")
         data = {
             "id": id,
             "name": name
         }
-        return self.post(req_url, data=data)
+        return self._do_post_request("objects/shopping_lists", data=data)
 
     def get_info(self):
-        req_url = urljoin(self._base_url, "system/info")
-        return self.get(req_url)
+        return self._do_get_request("system/info")
 
     def get_locations(self) -> List[LocationData]:
-        req_url = urljoin(self._base_url, "objects/locations")
-        resp = self.get(req_url)
+        resp = self._do_get_request("objects/locations")
         if resp.status_code != 200 or not resp.text:
             return
         parsed_json = resp.json()
         return [LocationData(response) for response in parsed_json]
 
     def get_quantity_units(self) -> List[QuantityUnitData]:
-        req_url = urljoin(self._base_url, "objects/quantity_units")
-        resp = self.get(req_url)
+        resp = self._do_get_request("objects/quantity_units")
         if resp.status_code != 200 or not resp.text:
             return
         parsed_json = resp.json()
         return [QuantityUnitData(response) for response in parsed_json]
 
     def get_shopping_lists(self) -> List[ShoppingList]:
-        req_url = urljoin(self._base_url, "objects/shopping_lists")
-        resp = self.get(req_url)
+        resp = self._do_get_request("objects/shopping_lists")
         if resp.status_code != 200 or not resp.text:
             return
         parsed_json = resp.json()
         return [ShoppingList(response) for response in parsed_json]
 
     def get_products(self) -> List[ProductData]:
-        req_url = urljoin(self._base_url, "objects/products")
-        resp = self.get(req_url)
+        resp = self._do_get_request("objects/products")
         if resp.status_code != 200 or not resp.text:
             return
         parsed_json = resp.json()
         return [ProductData(response) for response in parsed_json]
 
     def get_product_groups(self) -> List[ProductGroupData]:
-        req_url = urljoin(self._base_url, "objects/product_groups")
-        resp = self.get(req_url)
+        resp = self._do_get_request("objects/product_groups")
         if resp.status_code != 200 or not resp.text:
             return
         parsed_json = resp.json()
         return [ProductGroupData(response) for response in parsed_json]
 
     def get_product_by_barcode(self, barcode):
-        req_url = urljoin(urljoin(self._base_url, "stock/products/by-barcode/"), barcode)
-        resp = self.get(req_url)
+        resp = self._do_get_request(f"stock/products/by-barcode/{barcode}")
         if resp.status_code != 200:
             return
         parsed_json = resp.json()
@@ -289,8 +336,7 @@ class GrocyApiClient(object):
 
     def get_shopping_list(self, shopping_list_id) -> List[ShoppingListItem]:
         shopping_list_items = []
-        req_url = urljoin(self._base_url, "objects/shopping_list")
-        resp = self.get(req_url)
+        resp = self._do_get_request("objects/shopping_list")
         if resp.status_code != 200:
             return None
         parsed_json = resp.json()
@@ -305,8 +351,7 @@ class GrocyApiClient(object):
             "list_id": shopping_list_id,
             "product_amount": amount
         }
-        req_url = urljoin(self._base_url, "stock/shoppinglist/add-product")
-        return self.post(req_url, data)
+        return self._do_post_request("stock/shoppinglist/add-product", data)
             
     def remove_product_in_shopping_list(self, product_id: int, shopping_list_id: int = 1, amount: int = 1):
         data = {
@@ -314,25 +359,34 @@ class GrocyApiClient(object):
             "list_id": shopping_list_id,
             "product_amount": amount
         }
-        req_url = urljoin(self._base_url, "stock/shoppinglist/remove-product")
-        return self.post(req_url, data)
+        return self._do_post_request("stock/shoppinglist/remove-product", data)
 
     def clear_shopping_list(self, shopping_list_id: int = 1):
         data = {
             "list_id": shopping_list_id
         }
-        req_url = urljoin(self._base_url, "stock/shoppinglist/clear")
-        return self.post(req_url, data=data)
+        return self._do_post_request("stock/shoppinglist/clear", data=data)
 
     def complete_product_in_shopping_list(self, id: int, complete: int = 1):
         data = {
             "done": complete
         }
-        req_url = urljoin(urljoin(self._base_url, "objects/shopping_list/"), str(id))
-        return self.put(req_url, data=data)
+        return self._do_put_request(f"objects/shopping_list/{id}", data=data)
+
+    def get_userfields(self, entity: str, object_id: int):
+        resp = self._do_get_request(f"userfields/{entity}/{object_id}")
+        if resp.status_code != 200 or not resp.text:
+            return
+        parsed_json = resp.json()
+        return parsed_json
+        
+    def set_userfields(self, entity: str, object_id: int, key: str, value):
+        data = {
+            key: value
+        }
+        self._do_put_request(f"userfields/{entity}/{object_id}", data)
 
     def get_last_db_changed(self):
-        req_url = urljoin(self._base_url, "system/db-changed-time")
-        resp = self.get(req_url)
+        resp = self._do_get_request("system/db-changed-time")
         last_change_timestamp = parse_date(resp.json().get('changed_time'))
         return last_change_timestamp

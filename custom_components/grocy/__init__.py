@@ -28,6 +28,7 @@ async def async_setup(hass, config):
         CC_STARTUP_VERSION.format(name=DOMAIN, version=VERSION, issue_link=ISSUE_URL)
     )
     
+    # Check configuration exists
     conf = config.get(DOMAIN)
     if conf is None:
         return True
@@ -37,15 +38,32 @@ async def async_setup(hass, config):
     if not file_check:
         return False
 
-    grocy = setup_grocy(conf)
-    if not grocy:
-        return False
+    # Get "global" configuration.
+    grocy_host = conf.get(CONF_HOST)
+    grocy_apikey = conf.get(CONF_APIKEY)
+
+    # Extarct address and port
+    host = "{}:{}".format(grocy_host.split(":")[0], grocy_host.split(":")[1])
+    port = grocy_host.split(":")[2]
+
+    # Configure the grocy client
+    grocy = Grocy(host, grocy_apikey, port = port)
+    if not grocy.is_connected():
+        _LOGGER.error('Failed to connect to grocy, check apikey: ' + grocy_host)
+        return None
+    _LOGGER.debug('Connected to grocy: ' + grocy_host)
 
     # Create DATA dict
     hass.data[DOMAIN_DATA] = {
         DATA_GROCY: grocy,
         DATA_DATA: Data(hass, grocy),
-        DATA_ENTITIES: Entities(hass)
+        DATA_ENTITIES: Entities(hass),
+        PRODUCTS_NAME: [],
+        SHOPPING_LIST_NAME: [],
+        SHOPPING_LISTS_NAME: [],
+        LOCATIONS_NAME: [],
+        QUANTITY_UNITS_NAME: [],
+        PRODUCT_GROUPS_NAME: []
     }
 
     setup_services(hass);
@@ -60,25 +78,6 @@ async def async_setup(hass, config):
 
     # Initialization was successful.
     return True
-
-
-def setup_grocy(conf):
-    # Get "global" configuration.
-    grocy_host = conf.get(CONF_HOST)
-    grocy_apikey = conf.get(CONF_APIKEY)
-
-    # Extarct address and port
-    host = "{}:{}".format(grocy_host.split(":")[0], grocy_host.split(":")[1])
-    port = grocy_host.split(":")[2]
-
-    # Configure the grocy client
-    grocy = Grocy(host, grocy_apikey, port = port)
-    if not grocy.is_connected():
-        _LOGGER.error('Failed to connect to grocy, check apikey: ' + grocy_host)
-        return None
-    _LOGGER.debug('Connect to grocy: ' + grocy_host)
-
-    return grocy
 
 
 class Data:
@@ -127,7 +126,7 @@ class Data:
         _LOGGER.debug('Update data: ' + PRODUCTS_NAME)
         # This is where the main logic to update platform data goes.
         self._hass.data[DOMAIN_DATA][PRODUCTS_NAME] = (
-            await self._hass.async_add_executor_job(self._client.get_products))
+            await self._hass.async_add_executor_job(self._client.get_products, True))
 
     async def async_update_shopping_list(self):
         """Update data."""
