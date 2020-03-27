@@ -1,6 +1,6 @@
 """Constants for grocy."""
 
-VERSION = "0.0.29"
+VERSION = "0.0.30"
 
 DOMAIN = "grocy"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
@@ -35,6 +35,7 @@ EVENT_SUBTRACT_FROM_LIST='subtract_from_list'
 EVENT_PRODUCT_REMOVED='product_removed'
 EVENT_PRODUCT_ADDED='product_added'
 EVENT_PRODUCT_UPDATED='product_updated'
+EVENT_SYNC_DONE='sync_done'
 EVENT_GROCY_ERROR='error'
 
 # Configuration

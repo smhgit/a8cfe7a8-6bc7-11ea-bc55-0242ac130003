@@ -21,7 +21,7 @@ from .const import (DOMAIN, DOMAIN_DATA, DOMAIN_EVENT,
                     ADD_PRODUCT_SERVICE, UPDATE_PRODUCT_SERVICE, REMOVE_PRODUCT_SERVICE,
                     PRODUCTS_NAME, SHOPPING_LIST_NAME,
                     EVENT_ADDED_TO_LIST, EVENT_SUBTRACT_FROM_LIST, EVENT_PRODUCT_ADDED,
-                    EVENT_PRODUCT_REMOVED, EVENT_PRODUCT_UPDATED)
+                    EVENT_PRODUCT_REMOVED, EVENT_PRODUCT_UPDATED, EVENT_SYNC_DONE)
 from .schema import (CONFIG_SCHEMA,
                     ADD_TO_LIST_SERVICE_SCHEMA, SUBTRACT_FROM_LIST_SERVICE_SCHEMA,
                     ADD_PRODUCT_SERVICE_SCHEMA, REMOVE_PRODUCT_SERVICE_SCHEMA)
@@ -232,6 +232,10 @@ async def async_sync_grocy(hass, data):
         # Update all products
         for entity in domain_data[DATA_ENTITIES].async_get_all():
             entity.async_schedule_update_ha_state(True)
+        # Send event
+        hass.bus.fire(DOMAIN_EVENT, {
+            "event": EVENT_SYNC_DONE
+        })
         _LOGGER.debug('Sync done')
     except requests.exceptions.HTTPError:
         _LOGGER.debug(f"Grocy sync failed")
