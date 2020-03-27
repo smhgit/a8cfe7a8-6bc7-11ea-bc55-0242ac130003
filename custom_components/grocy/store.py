@@ -6,7 +6,7 @@ from .store_api_client import get_store_api_client
 class Store:
     """Online store"""
     
-    def __init__(self, store_name: str = 'none'):
+    def __init__(self, store_name: str = 'default'):
       self._client = get_store_api_client(store_name)
 
     @property

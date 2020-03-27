@@ -178,7 +178,7 @@ class RamiLevyStoreApiClient(StoreApiClient):
         }
 
 
-def get_store_api_client(store_name: str = 'none'):
+def get_store_api_client(store_name: str = 'default'):
     if store_name.lower() == RamiLevyStoreApiClient.name.lower():
         return RamiLevyStoreApiClient()
     elif store_name.lower() == ShufersalStoreApiClient.name.lower():
