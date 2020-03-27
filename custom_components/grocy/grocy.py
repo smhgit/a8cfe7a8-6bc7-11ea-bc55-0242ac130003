@@ -135,11 +135,14 @@ class Grocy(object):
     def complete_product_in_shopping_list(self, id: int, complete: int = 1):
         return self._api_client.complete_product_in_shopping_list(id, complete)
 
+    def set_userfield(self, entity: str, object_id: int, key: str, value):
+        return self._api_client.set_userfield(entity, object_id, key, value)
+
     def get_userfields(self, entity: str, object_id: int):
         return self._api_client.get_userfields(entity, object_id)
         
-    def set_userfields(self, entity: str, object_id: int, key: str, value):
-        return self._api_client.set_userfields(entity, object_id, key, value)
-        
+    def set_userfields(self, entity: str, object_id: int, data):
+        return self._api_client.set_userfields(entity, object_id, data)
+
     def get_last_db_changed(self):
         return self._api_client.get_last_db_changed()

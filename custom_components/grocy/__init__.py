@@ -69,7 +69,7 @@ async def async_setup(hass, config):
     setup_services(hass);
 
     # Initial objects upddate
-    await hass.data[DOMAIN_DATA]['data'].async_update_data(None, True)
+    await hass.data[DOMAIN_DATA]['data'].async_update_data(None, wait=True, userfields=True)
 
     # Add sensors
     hass.async_create_task(
@@ -104,7 +104,7 @@ class Data:
             PRODUCT_GROUPS_NAME: None
         }
 
-    async def async_update_data(self, sensor_types = None, wait: bool = True, force: bool = False):
+    async def async_update_data(self, sensor_types = None, wait: bool = True, force: bool = False, userfields:bool = False):
         """Update data."""
         sensor_types = sensor_types if sensor_types else [
             PRODUCTS_NAME, SHOPPING_LIST_NAME, SHOPPING_LISTS_NAME, LOCATIONS_NAME,
@@ -117,46 +117,46 @@ class Data:
                 if sensor_type in self._sensor_types_dict:
                     # This is where the main logic to update platform data goes.
                     if wait:
-                        await self._sensor_types_dict[sensor_type]()
+                        await self._sensor_types_dict[sensor_type](userfields=userfields)
                     else:
-                        self._hass.async_create_task(self._sensor_types_dict[sensor_type]())
+                        self._hass.async_create_task(self._sensor_types_dict[sensor_type](userfields=userfields))
 
-    async def async_update_products(self):
+    async def async_update_products(self, userfields:bool = False):
         """Update data."""
         _LOGGER.debug('Update data: ' + PRODUCTS_NAME)
         # This is where the main logic to update platform data goes.
         self._hass.data[DOMAIN_DATA][PRODUCTS_NAME] = (
-            await self._hass.async_add_executor_job(self._client.get_products, True))
+            await self._hass.async_add_executor_job(self._client.get_products, userfields))
 
-    async def async_update_shopping_list(self):
+    async def async_update_shopping_list(self, userfields:bool = False):
         """Update data."""
         _LOGGER.debug('Update data: ' + SHOPPING_LIST_NAME)
         # This is where the main logic to update platform data goes.
         self._hass.data[DOMAIN_DATA][SHOPPING_LIST_NAME] = (
             await self._hass.async_add_executor_job(self._client.shopping_list))
 
-    async def async_update_shopping_lists(self):
+    async def async_update_shopping_lists(self, userfields:bool = False):
         """Update data."""
         _LOGGER.debug('Update data: ' + SHOPPING_LISTS_NAME)
         # This is where the main logic to update platform data goes.
         self._hass.data[DOMAIN_DATA][SHOPPING_LISTS_NAME] = (
             await self._hass.async_add_executor_job(self._client.shopping_lists))
 
-    async def async_update_locations(self):
+    async def async_update_locations(self, userfields:bool = False):
         """Update data."""
         _LOGGER.debug('Update data: ' + LOCATIONS_NAME)
         # This is where the main logic to update platform data goes.
         self._hass.data[DOMAIN_DATA][LOCATIONS_NAME] = (
             await self._hass.async_add_executor_job(self._client.locations))
 
-    async def async_update_quantity_units(self):
+    async def async_update_quantity_units(self, userfields:bool = False):
         """Update data."""
         _LOGGER.debug('Update data: ' + QUANTITY_UNITS_NAME)
         # This is where the main logic to update platform data goes.
         self._hass.data[DOMAIN_DATA][QUANTITY_UNITS_NAME] = (
             await self._hass.async_add_executor_job(self._client.quantity_units))
 
-    async def async_update_product_groups(self):
+    async def async_update_product_groups(self, userfields:bool = False):
         """Update data."""
         _LOGGER.debug('Update data: ' + PRODUCT_GROUPS_NAME)
         # This is where the main logic to update platform data goes.

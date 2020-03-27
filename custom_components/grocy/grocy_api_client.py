@@ -122,6 +122,10 @@ class ProductData(GrocyObject):
     def price(self) -> float:
         return parse_float(self._userfields['price'])
 
+    @property
+    def store(self) -> str:
+        return parse_float(self._userfields['store'])
+
 
 class ShoppingList(GrocyObject):
     def __init__(self, parsed_json):
@@ -207,25 +211,31 @@ class GrocyApiClient(object):
         req_url = urljoin(self._base_url, end_url)
         resp = requests.get(req_url, verify=self._verify_ssl, headers=self._headers)
         _LOGGER.debug(f"GET {req_url} {resp.status_code}")
-        return resp
+        resp.raise_for_status()
+        if len(resp.content) > 0:
+            return resp.json()
 
     def _do_post_request(self, end_url: str, data):
         req_url = urljoin(self._base_url, end_url)
         resp = requests.post(req_url, verify=self._verify_ssl, headers=self._headers, data=data)
         _LOGGER.debug(f"POST {req_url} {resp.status_code}")
-        return resp
+        resp.raise_for_status()
+        if len(resp.content) > 0:
+            return resp.json()
 
     def _do_put_request(self, end_url: str, data):
         req_url = urljoin(self._base_url, end_url)
         resp = requests.put(req_url, verify=self._verify_ssl, headers=self._headers, data=data)
         _LOGGER.debug(f"PUT {req_url} {resp.status_code}")
-        return resp
+        resp.raise_for_status()
+        if len(resp.content) > 0:
+            return resp.json()
 
     def _do_delete_request(self, end_url: str):
         req_url = urljoin(self._base_url, end_url)
         resp = requests.delete(req_url, verify=self._verify_ssl, headers=self._headers)
         _LOGGER.debug(f"DELETE {req_url} {resp.status_code}")
-        return resp
+        resp.raise_for_status()
 
     def add_product(self, id, name, barcode, description, product_group_id,
                     qu_id_purchase, location_id, picture):
@@ -248,7 +258,7 @@ class GrocyApiClient(object):
             "tare_weight": "0.0",
             "not_check_stock_fulfillment_for_recipes": "0"
         }
-        return self._do_post_request("objects/products", data=data)
+        self._do_post_request("objects/products", data=data)
 
     def update_product(self, id, name = None, barcode = None, description = None,
                        product_group_id = None, qu_id_purchase = None, location_id = None,
@@ -260,90 +270,69 @@ class GrocyApiClient(object):
         if product_group_id: data['product_group_id'] = product_group_id
         if location_id: data['location_id'] = location_id
         if picture: data['picture'] = picture
-        return self._do_put_request(f"objects/products/{id}", data=data)        
+        self._do_put_request(f"objects/products/{id}", data=data)        
 
     def add_product_group(self, id, name):
         data = {
             "id": id,
             "name": name
         }
-        return self._do_post_request("objects/product_groups", data=data)
+        self._do_post_request("objects/product_groups", data=data)
 
     def remove_objects_products(self, id):
-        return self._do_delete_request(f"objects/products/{id}")
+        self._do_delete_request(f"objects/products/{id}")
 
     def add_location(self, id, name):
         data = {
             "id": id,
             "name": name
         }
-        return self._do_post_request("objects/locations", data=data)
+        self._do_post_request("objects/locations", data=data)
 
     def add_quantity_unit(self, id, name):
         data = {
             "id": id,
             "name": name
         }
-        return self._do_post_request("objects/quantity_units", data=data)
+        self._do_post_request("objects/quantity_units", data=data)
 
     def add_shopping_list(self, id, name):
         data = {
             "id": id,
             "name": name
         }
-        return self._do_post_request("objects/shopping_lists", data=data)
+        self._do_post_request("objects/shopping_lists", data=data)
 
     def get_info(self):
         return self._do_get_request("system/info")
 
     def get_locations(self) -> List[LocationData]:
-        resp = self._do_get_request("objects/locations")
-        if resp.status_code != 200 or not resp.text:
-            return
-        parsed_json = resp.json()
+        parsed_json = self._do_get_request("objects/locations")
         return [LocationData(response) for response in parsed_json]
 
     def get_quantity_units(self) -> List[QuantityUnitData]:
-        resp = self._do_get_request("objects/quantity_units")
-        if resp.status_code != 200 or not resp.text:
-            return
-        parsed_json = resp.json()
+        parsed_json = self._do_get_request("objects/quantity_units")
         return [QuantityUnitData(response) for response in parsed_json]
 
     def get_shopping_lists(self) -> List[ShoppingList]:
-        resp = self._do_get_request("objects/shopping_lists")
-        if resp.status_code != 200 or not resp.text:
-            return
-        parsed_json = resp.json()
+        parsed_json = self._do_get_request("objects/shopping_lists")
         return [ShoppingList(response) for response in parsed_json]
 
     def get_products(self) -> List[ProductData]:
-        resp = self._do_get_request("objects/products")
-        if resp.status_code != 200 or not resp.text:
-            return
-        parsed_json = resp.json()
+        parsed_json = self._do_get_request("objects/products")
         return [ProductData(response) for response in parsed_json]
 
     def get_product_groups(self) -> List[ProductGroupData]:
-        resp = self._do_get_request("objects/product_groups")
-        if resp.status_code != 200 or not resp.text:
-            return
-        parsed_json = resp.json()
+        parsed_json = self._do_get_request("objects/product_groups")
         return [ProductGroupData(response) for response in parsed_json]
 
     def get_product_by_barcode(self, barcode):
-        resp = self._do_get_request(f"stock/products/by-barcode/{barcode}")
-        if resp.status_code != 200:
-            return
-        parsed_json = resp.json()
+        parsed_json = self._do_get_request(f"stock/products/by-barcode/{barcode}")
         return ProductData(parsed_json['product'])
 
     def get_shopping_list(self, shopping_list_id) -> List[ShoppingListItem]:
         shopping_list_items = []
-        resp = self._do_get_request("objects/shopping_list")
-        if resp.status_code != 200:
-            return None
-        parsed_json = resp.json()
+        parsed_json = self._do_get_request("objects/shopping_list")
         for response in parsed_json:
             if response['shopping_list_id'] == str(shopping_list_id) or not shopping_list_id:
                 shopping_list_items.append(ShoppingListItem(response))
@@ -355,7 +344,7 @@ class GrocyApiClient(object):
             "list_id": shopping_list_id,
             "product_amount": amount
         }
-        return self._do_post_request("stock/shoppinglist/add-product", data)
+        self._do_post_request("stock/shoppinglist/add-product", data)
             
     def remove_product_in_shopping_list(self, product_id: int, shopping_list_id: int = 1, amount: int = 1):
         data = {
@@ -363,34 +352,33 @@ class GrocyApiClient(object):
             "list_id": shopping_list_id,
             "product_amount": amount
         }
-        return self._do_post_request("stock/shoppinglist/remove-product", data)
+        self._do_post_request("stock/shoppinglist/remove-product", data)
 
     def clear_shopping_list(self, shopping_list_id: int = 1):
         data = {
             "list_id": shopping_list_id
         }
-        return self._do_post_request("stock/shoppinglist/clear", data=data)
+        self._do_post_request("stock/shoppinglist/clear", data=data)
 
     def complete_product_in_shopping_list(self, id: int, complete: int = 1):
         data = {
             "done": complete
         }
-        return self._do_put_request(f"objects/shopping_list/{id}", data=data)
-
-    def get_userfields(self, entity: str, object_id: int):
-        resp = self._do_get_request(f"userfields/{entity}/{object_id}")
-        if resp.status_code != 200 or not resp.text:
-            return
-        parsed_json = resp.json()
-        return parsed_json
+        self._do_put_request(f"objects/shopping_list/{id}", data=data)
         
-    def set_userfields(self, entity: str, object_id: int, key: str, value):
+    def set_userfield(self, entity: str, object_id: int, key: str, value):
         data = {
             key: value
         }
+        self.set_userfields(entity, object_id, data)
+
+    def get_userfields(self, entity: str, object_id: int):
+        return self._do_get_request(f"userfields/{entity}/{object_id}")
+
+    def set_userfields(self, entity: str, object_id: int, data):
         self._do_put_request(f"userfields/{entity}/{object_id}", data)
 
     def get_last_db_changed(self):
-        resp = self._do_get_request("system/db-changed-time")
-        last_change_timestamp = parse_date(resp.json().get('changed_time'))
+        parsed_json = self._do_get_request("system/db-changed-time")
+        last_change_timestamp = parse_date(parsed_json.get('changed_time'))
         return last_change_timestamp
