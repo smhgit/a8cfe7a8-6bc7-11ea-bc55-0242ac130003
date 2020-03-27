@@ -117,6 +117,7 @@ async def async_add_to_list(hass, data):
     except requests.exceptions.HTTPError:
         _LOGGER.debug(f"Failed to add product: barcode {data[CONF_BARCODE]}")
 
+
 async def async_add_product(hass, data):
     domain_data = hass.data[DOMAIN_DATA]
     try:
@@ -204,11 +205,12 @@ async def async_remove_product(hass, data):
     except requests.exceptions.HTTPError:
         _LOGGER.debug(f"Failed to remove product from grocy {entity_id}")
 
+
 async def async_sync_grocy(hass, data):
     domain_data = hass.data[DOMAIN_DATA]
     try:
         # Force update from grocy
-        await domain_data[DATA_DATA].async_update_data(force=True)
+        await domain_data[DATA_DATA].async_update_data(force=True, userfields=True)
         # Add missing products
         for product in domain_data[PRODUCTS_NAME]:
             entity_id = ProductSensor.to_entity_id(product.id)
@@ -222,7 +224,7 @@ async def async_sync_grocy(hass, data):
                 _LOGGER.debug(f"Remove product: {entity.entity_id}")
         # Update products userfields
         for product in domain_data[PRODUCTS_NAME]:
-            store_product = Store().get_product_by_barcode(product.barcodes[0])
+            store_product = Store(product.store).get_product_by_barcode(product.barcodes[0])
             if store_product:
                 domain_data[DATA_GROCY].set_userfield('products', product.id, 'price', store_product.price)
         # Force update to get userfieldss

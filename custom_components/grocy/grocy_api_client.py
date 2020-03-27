@@ -87,7 +87,8 @@ class ProductData(GrocyObject):
             self._barcodes = barcodes_raw.split(",")
 
         self._userfields = {
-            "price": "0.0"
+            "price": "0.0",
+            "store": "default"
         }
         
     @property
@@ -124,7 +125,7 @@ class ProductData(GrocyObject):
 
     @property
     def store(self) -> str:
-        return parse_float(self._userfields['store'])
+        return self._userfields['store']
 
 
 class ShoppingList(GrocyObject):

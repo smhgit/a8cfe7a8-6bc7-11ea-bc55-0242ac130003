@@ -86,6 +86,17 @@ class StoreApiClient(ABC):
             return None
 
 
+class NoneStoreApiClient(StoreApiClient):
+    """Rami levy online store cline"""
+    name = 'None'
+
+    def __init__(self):
+        self._name = NoneStoreApiClient.name
+
+    def get_product_by_barcode(self, barcode: str) -> ProductData:
+        return None
+
+
 class ShufersalStoreApiClient(StoreApiClient):
     """Shufersal online store client"""
     name = 'Shufersal'
@@ -167,9 +178,9 @@ class RamiLevyStoreApiClient(StoreApiClient):
         }
 
 
-def get_store_api_client(store_name: str = 'default'):
+def get_store_api_client(store_name: str = 'none'):
     if store_name.lower() == RamiLevyStoreApiClient.name.lower():
         return RamiLevyStoreApiClient()
     elif store_name.lower() == ShufersalStoreApiClient.name.lower():
         return ShufersalStoreApiClient()
-    return RamiLevyStoreApiClient()
+    return NoneStoreApiClient()
