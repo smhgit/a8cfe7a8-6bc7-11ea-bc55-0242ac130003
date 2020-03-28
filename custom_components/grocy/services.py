@@ -21,7 +21,7 @@ from .const import (DOMAIN, DOMAIN_DATA, DOMAIN_EVENT,
                     ADD_PRODUCT_SERVICE, UPDATE_PRODUCT_SERVICE, REMOVE_PRODUCT_SERVICE,
                     PRODUCTS_NAME, SHOPPING_LIST_NAME,
                     EVENT_ADDED_TO_LIST, EVENT_SUBTRACT_FROM_LIST, EVENT_PRODUCT_ADDED,
-                    EVENT_PRODUCT_REMOVED, EVENT_PRODUCT_UPDATED, EVENT_SYNC_DONE)
+                    EVENT_PRODUCT_REMOVED, EVENT_PRODUCT_UPDATED, EVENT_SYNC_DONE, EVENT_GROCY_ERROR)
 from .schema import (CONFIG_SCHEMA,
                     ADD_TO_LIST_SERVICE_SCHEMA, SUBTRACT_FROM_LIST_SERVICE_SCHEMA,
                     ADD_PRODUCT_SERVICE_SCHEMA, REMOVE_PRODUCT_SERVICE_SCHEMA)
@@ -116,7 +116,8 @@ async def async_add_to_list(hass, data):
             })
     except requests.exceptions.HTTPError:
         _LOGGER.debug(f"Failed to add product: barcode {data[CONF_BARCODE]}")
-
+    except requests.exceptions.ReadTimeout:
+        _LOGGER.debug(f"Read timeout")
 
 async def async_add_product(hass, data):
     domain_data = hass.data[DOMAIN_DATA]
@@ -141,7 +142,7 @@ async def async_add_product(hass, data):
                 _LOGGER.debug(f"Product was not found: {data[CONF_BARCODE]}")
                 hass.bus.fire(DOMAIN_EVENT, {
                     "event": EVENT_GROCY_ERROR,
-                    "message": "{} wasn't found at {} store".format(data[CONF_BARCODE], store.name)
+                    "message": f"{data[CONF_BARCODE]} wasn't found at {data[CONF_STORE]} store"
                 })
                 return True
             _LOGGER.debug(f"Found product: {store_product.name}")
@@ -169,6 +170,8 @@ async def async_add_product(hass, data):
                         })
     except requests.exceptions.HTTPError:
         _LOGGER.debug(f"Failed to add product: barcode {data[CONF_BARCODE]}")
+    except requests.exceptions.ReadTimeout:
+        _LOGGER.debug(f"Read timeout")
 
 
 async def async_remove_product(hass, data):
@@ -204,6 +207,8 @@ async def async_remove_product(hass, data):
             })
     except requests.exceptions.HTTPError:
         _LOGGER.debug(f"Failed to remove product from grocy {entity_id}")
+    except requests.exceptions.ReadTimeout:
+        _LOGGER.debug(f"Read timeout")
 
 
 async def async_sync_grocy(hass, data):
@@ -239,3 +244,5 @@ async def async_sync_grocy(hass, data):
         _LOGGER.debug('Sync done')
     except requests.exceptions.HTTPError:
         _LOGGER.debug(f"Grocy sync failed")
+    except requests.exceptions.ReadTimeout:
+        _LOGGER.debug(f"Read timeout")

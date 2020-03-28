@@ -1,6 +1,6 @@
 """Constants for grocy."""
 
-VERSION = "0.0.30"
+VERSION = "0.0.31"
 
 DOMAIN = "grocy"
 DOMAIN_DATA = "{}_data".format(DOMAIN)

@@ -63,27 +63,17 @@ class ProductData(object):
 class StoreApiClient(ABC):
     """Online store api client interface"""
 
-    @abstractmethod
-    def get_product_by_barcode(self, barcode: str) -> ProductData:
-        pass
-
     @property
     def name(self):
         return self._name
 
-    def get(self, end_url, timeout: int = 20, verify_ssl: bool = True, headers = { "accept": "application/json" }):
-        try:
-            req_url = urljoin(self._base_url, end_url)
-            resp = requests.get(req_url, verify=verify_ssl, headers=headers, timeout=timeout)
-            _LOGGER.debug("GET {} {}".format(req_url, resp.status_code))
-            resp.raise_for_status()
-            return resp
-        except requests.exceptions.ReadTimeout:
-            _LOGGER.debug("GET {} timeout".format(req_url))
-            return None
-        except requests.exceptions.HTTPError:
-            _LOGGER.debug('GET {} error: '.format(resp.status_code))
-            return None
+    def _do_get_request(self, end_url, timeout: int = 20, verify_ssl: bool = True, headers = { "accept": "application/json" }):
+        req_url = urljoin(self._base_url, end_url)
+        resp = requests.get(req_url, verify=verify_ssl, headers=headers, timeout=timeout)
+        _LOGGER.debug(f"GET {req_url} {resp.status_code}")
+        resp.raise_for_status()
+        if len(resp.content) > 0:
+            return resp.json()
 
 
 class NoneStoreApiClient(StoreApiClient):
@@ -97,6 +87,32 @@ class NoneStoreApiClient(StoreApiClient):
         return None
 
 
+class MySupermarketStoreApiClient(StoreApiClient):
+    """MySupermarket online store client"""
+    name = 'My Supermarket'
+
+    def __init__(self):
+        self._name = MySupermarketStoreApiClient.name
+        self._base_url = 'https://chp.co.il/'
+
+    def get_product_by_barcode(self, barcode: str) -> ProductData:
+        parsed_json = self._do_get_request(f"autocompletion/product_extended?term={barcode}")
+        if parsed_json:
+            for item in parsed_json:
+                data = {
+                    "store": self._name,
+                    "barcode": item['id'].split('_')[1],
+                    "id": parse_int(item['id'].split('_')[1]),
+                    "name": item['value'],
+                    "group_id": 0,
+                    "price": 0.0,
+                    "group_name": "Others",
+                    "picture": None
+                }
+                if data['barcode'] == barcode:
+                    return ProductData(item)
+
+
 class ShufersalStoreApiClient(StoreApiClient):
     """Shufersal online store client"""
     name = 'Shufersal'
@@ -106,35 +122,26 @@ class ShufersalStoreApiClient(StoreApiClient):
         self._base_url = 'https://www.shufersal.co.il'
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
-        _LOGGER.debug('Store search product: ' + barcode)
         limit = 10
-        resp = self.get("online/he/search/results?q={}%3Arelevance&limit={}".format(barcode, limit))
-        if resp:
-            parsed_json = resp.json()
-            # Iterate all found products
-            for item in parsed_json['results']:
-                # Get product data
-                product = ProductData(self.get_product_data(item))
-                if product.barcode == barcode:
-                    return product
-        # failed to query store or product wasn't found
-        return None
-
-    def get_product_data(self, response):
-        return {
-            "store": self._name,
-            "barcode": response['sku'],
-            "id": parse_int(response.get('sku')),
-            "name": response['name'],
-            "group_id": 0,
-            "price": 0.0,
-            "group_name": "Others",
-            "picture": response['images'][0]['url']
-        }
+        parsed_json = self._do_get_request(f"online/he/search/results?q={barcode}%3Arelevance&limit={limit}")
+        if parsed_json:
+            for item in parsed_json.get('results', []):
+                data = {
+                    "store": self._name,
+                    "barcode": item['sku'],
+                    "id": parse_int(item.get('sku')),
+                    "name": item['name'],
+                    "group_id": 0,
+                    "price": 0.0,
+                    "group_name": "Others",
+                    "picture": item['images'][0]['url']
+                }
+                if data['barcode'] == barcode:
+                    return ProductData(item)
 
 
 class RamiLevyStoreApiClient(StoreApiClient):
-    """Rami levy online store cline"""
+    """Rami levy online store client"""
     name = 'Rami Levy'
 
     def __init__(self):
@@ -143,39 +150,31 @@ class RamiLevyStoreApiClient(StoreApiClient):
         self._base_url = 'https://www.rami-levy.co.il'
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
-        _LOGGER.debug('Store search product: ' + barcode)
         index = 0
         total = 1
         while index < total:
-            resp = self.get("api/search?store={}&q={}&from={}".format(self._store_id, barcode, index))
-            if resp:
-                parsed_json = resp.json()
+            parsed_json = self._do_get_request(f"api/search?store={self._store_id}&q={barcode}&from={index}")
+            if parsed_json:
                 # Search for barcode in page
                 for item in parsed_json['data']:
-                    # Get product data
-                    product = ProductData(self.get_product_data(item))
-                    if product.barcode == barcode:
-                        return product
+                    data = {
+                        "store": self._name,
+                        "barcode": str(item['barcode']),
+                        "id": item['id'],
+                        "name": item['name'],
+                        "group_id": item['group_id'],
+                        "price": parse_float(item['price']['price']),
+                        "group_name": "Others",
+                        "picture": "https://static.rami-levy.co.il/storage/images/{}/{}/small.jpg".format(
+                                        item['barcode'], item['id'])
+                    }
+                    if data['barcode'] == barcode:
+                        return ProductData(data)
                 # Next page
                 index += len(parsed_json['data'])
                 total = parse_int(parsed_json.get('total'))
             else:
                 break
-        # failed to query store or product wasn't found
-        return None
-
-    def get_product_data(self, response):
-        return {
-            "store": self._name,
-            "barcode": str(response['barcode']),
-            "id": response['id'],
-            "name": response['name'],
-            "group_id": response['group_id'],
-            "price": parse_float(response['price']['price']),
-            "group_name": "Others",
-            "picture": "https://static.rami-levy.co.il/storage/images/{}/{}/small.jpg".format(
-                            response['barcode'], response['id'])
-        }
 
 
 def get_store_api_client(store_name: str = 'default'):
@@ -183,4 +182,6 @@ def get_store_api_client(store_name: str = 'default'):
         return RamiLevyStoreApiClient()
     elif store_name.lower() == ShufersalStoreApiClient.name.lower():
         return ShufersalStoreApiClient()
+    elif store_name.lower() == MySupermarketStoreApiClient.name.lower():
+        return MySupermarketStoreApiClient()
     return NoneStoreApiClient()
