@@ -160,7 +160,7 @@ class RamiLevyStoreApiClient(StoreApiClient):
                     data = {
                         "store": self._name,
                         "barcode": str(item['barcode']),
-                        "id": item['id'],
+                        "id": parse_int(str(item['barcode'])),
                         "name": item['name'],
                         "group_id": item['group_id'],
                         "price": parse_float(item['price']['price']),
