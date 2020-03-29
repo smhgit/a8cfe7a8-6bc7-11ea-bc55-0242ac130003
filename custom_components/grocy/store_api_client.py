@@ -63,6 +63,12 @@ class ProductData(object):
 class StoreApiClient(ABC):
     """Online store api client interface"""
 
+    def __init__(self, name, base_url, username, pssword):
+        self._name = name
+        self._base_url = f"https://{base_url}"
+        self._username = username
+        self._password = password
+
     @property
     def name(self):
         return self._name
@@ -75,13 +81,27 @@ class StoreApiClient(ABC):
         if len(resp.content) > 0:
             return resp.json()
 
+    def _do_post_request(self, end_url, data, verify_ssl: bool = True, headers = { "accept": "application/json" }):
+        req_url = urljoin(self._base_url, end_url)
+        resp = requests.post(req_url, verify=verify_ssl, headers=headers, data=data)
+        _LOGGER.debug(f"POST {req_url} {resp.status_code}")
+        resp.raise_for_status()
+        if len(resp.content) > 0:
+            return resp.json()
+
+    def login(self):
+        pass
+
+    def get_product_by_barcode(self, barcode: str):
+        pass
+
 
 class NoneStoreApiClient(StoreApiClient):
     """Rami levy online store cline"""
     name = 'None'
 
-    def __init__(self):
-        self._name = NoneStoreApiClient.name
+    def __init__(self, username, pssword):
+        super().__init__(NoneStoreApiClient.name, "", username, password)
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
         return None
@@ -91,9 +111,8 @@ class MySupermarketStoreApiClient(StoreApiClient):
     """MySupermarket online store client"""
     name = 'My Supermarket'
 
-    def __init__(self):
-        self._name = MySupermarketStoreApiClient.name
-        self._base_url = 'https://chp.co.il/'
+    def __init__(self, username, pssword):
+        super().__init__(MySupermarketStoreApiClient.name, 'chp.co.il/', username, password)
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
         parsed_json = self._do_get_request(f"autocompletion/product_extended?term={barcode}")
@@ -117,9 +136,8 @@ class ShufersalStoreApiClient(StoreApiClient):
     """Shufersal online store client"""
     name = 'Shufersal'
 
-    def __init__(self):
-        self._name = ShufersalStoreApiClient.name
-        self._base_url = 'https://www.shufersal.co.il'
+    def __init__(self, username, pssword):
+        super().__init__(ShufersalStoreApiClient.name, 'www.shufersal.co.il', username, password)
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
         limit = 10
@@ -144,10 +162,12 @@ class RamiLevyStoreApiClient(StoreApiClient):
     """Rami levy online store client"""
     name = 'Rami Levy'
 
-    def __init__(self):
-        self._name = RamiLevyStoreApiClient.name
+    def __init__(self, username, pssword):
+        super().__init__(RamiLevyStoreApiClient.name, 'www.rami-levy.co.il', username, password)
         self._store_id = 331
-        self._base_url = 'https://www.rami-levy.co.il'
+
+    def login(self):
+        pass
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
         index = 0
@@ -177,11 +197,11 @@ class RamiLevyStoreApiClient(StoreApiClient):
                 break
 
 
-def get_store_api_client(store_name: str = 'default'):
+def get_store_api_client(store_name: str = 'default', username: str = None, password: str = None):
     if store_name.lower() == RamiLevyStoreApiClient.name.lower():
-        return RamiLevyStoreApiClient()
+        return RamiLevyStoreApiClient(username, password)
     elif store_name.lower() == ShufersalStoreApiClient.name.lower():
-        return ShufersalStoreApiClient()
+        return ShufersalStoreApiClient(username, password)
     elif store_name.lower() == MySupermarketStoreApiClient.name.lower():
-        return MySupermarketStoreApiClient()
+        return MySupermarketStoreApiClient(username, password)
     return NoneStoreApiClient()

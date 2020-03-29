@@ -1,6 +1,6 @@
 """Constants for grocy."""
 
-VERSION = "0.0.31"
+VERSION = "0.0.32"
 
 DOMAIN = "grocy"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
@@ -61,8 +61,9 @@ DEFAULT_PRODUCT_DESCRIPTION = ""
 ADD_TO_LIST_SERVICE = DOMAIN_SERVICE.format('add_to_list')
 SUBTRACT_FROM_LIST_SERVICE = DOMAIN_SERVICE.format('subtract_from_list')
 ADD_PRODUCT_SERVICE = DOMAIN_SERVICE.format('add_product')
-UPDATE_PRODUCT_SERVICE = DOMAIN_SERVICE.format('update_product')
 REMOVE_PRODUCT_SERVICE = DOMAIN_SERVICE.format('remove_product')
+ADD_FAVORITE_SERVICE = DOMAIN_SERVICE.format('add_favorite')
+REMOVE_FAVORITE_SERVICE = DOMAIN_SERVICE.format('remove_favorite')
 SYNC_GROCY_SERVICE = DOMAIN_SERVICE.format('sync')
 
 # Device classes

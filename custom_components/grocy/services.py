@@ -17,14 +17,17 @@ from .const import (DOMAIN, DOMAIN_DATA, DOMAIN_EVENT,
                     CONF_APIKEY, CONF_AMOUNT, CONF_SHOPPING_LIST_ID,
                     CONF_BARCODE, CONF_STORE, CONF_PRODUCT_GROUP_ID, CONF_UNIT_OF_MEASUREMENT,
                     CONF_PRODUCT_LOCATION_ID, CONF_PRODUCT_DESCRIPTION,
-                    SYNC_GROCY_SERVICE, ADD_TO_LIST_SERVICE, SUBTRACT_FROM_LIST_SERVICE,
-                    ADD_PRODUCT_SERVICE, UPDATE_PRODUCT_SERVICE, REMOVE_PRODUCT_SERVICE,
+                    SYNC_GROCY_SERVICE,
+                    ADD_TO_LIST_SERVICE, SUBTRACT_FROM_LIST_SERVICE,
+                    ADD_PRODUCT_SERVICE, REMOVE_PRODUCT_SERVICE,
+                    ADD_FAVORITE_SERVICE, REMOVE_FAVORITE_SERVICE,
                     PRODUCTS_NAME, SHOPPING_LIST_NAME,
                     EVENT_ADDED_TO_LIST, EVENT_SUBTRACT_FROM_LIST, EVENT_PRODUCT_ADDED,
                     EVENT_PRODUCT_REMOVED, EVENT_PRODUCT_UPDATED, EVENT_SYNC_DONE, EVENT_GROCY_ERROR)
 from .schema import (CONFIG_SCHEMA,
                     ADD_TO_LIST_SERVICE_SCHEMA, SUBTRACT_FROM_LIST_SERVICE_SCHEMA,
-                    ADD_PRODUCT_SERVICE_SCHEMA, REMOVE_PRODUCT_SERVICE_SCHEMA)
+                    ADD_PRODUCT_SERVICE_SCHEMA, REMOVE_PRODUCT_SERVICE_SCHEMA,
+                    ADD_FAVORITE_SERVICE_SCHEMA, REMOVE_FAVORITE_SERVICE_SCHEMA)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,34 +63,47 @@ def setup_services(hass):
         )
 
     @callback
-    def handle_sync_grocy_service(call):
-        hass.async_add_job(async_sync_grocy(hass, call.data))
+    def handle_add_favorite_service(call):
+        hass.async_add_job(async_add_favorite(hass, call.data))
     hass.services.async_register(
-        DOMAIN, SYNC_GROCY_SERVICE, handle_sync_grocy_service
+        DOMAIN, ADD_FAVORITE_SERVICE, handle_add_favorite_service, schema=ADD_FAVORITE_SERVICE_SCHEMA
+        )
+
+    @callback
+    def handle_remove_favorite_service(call):
+        hass.async_add_job(async_remove_favorite(hass, call.data))
+    hass.services.async_register(
+        DOMAIN, REMOVE_FAVORITE_SERVICE, handle_remove_favorite_service, schema=REMOVE_FAVORITE_SERVICE_SCHEMA
+        )
+
+    @callback
+    def handle_sync_service(call):
+        hass.async_add_job(async_sync(hass, call.data))
+    hass.services.async_register(
+        DOMAIN, SYNC_GROCY_SERVICE, handle_sync_service
         )
 
 
 async def async_subtract_from_list(hass, data):
     domain_data = hass.data[DOMAIN_DATA]
-    # Can be product or barcode sensor
-    entity_id = data[CONF_ENTITY_ID][0]
-    entity = domain_data[DATA_ENTITIES].async_get(entity_id)
-    if entity:
+    try:
+        # Can be product or barcode sensor
+        entity_id = data[CONF_ENTITY_ID][0]
+        entity = domain_data[DATA_ENTITIES].async_get(entity_id)
         resp = domain_data[DATA_GROCY].remove_product_in_shopping_list(
             entity.device_state_attributes['id'], data[CONF_SHOPPING_LIST_ID], data[CONF_AMOUNT]
             )
-        if resp.status_code == 204:
-            _LOGGER.debug(f"Product was subtarcted from list {entity_id}")
-            await domain_data[DATA_DATA].async_update_data([SHOPPING_LIST_NAME], True)
-            entity.async_schedule_update_ha_state(True)
-            shopping_list_entity_id = domain_data[DATA_ENTITIES].async_get(ShoppingListSensor.to_entity_id(data[CONF_SHOPPING_LIST_ID]))
-            shopping_list_entity_id.async_schedule_update_ha_state(True)
-            hass.bus.fire(DOMAIN_EVENT, {
-                "event": EVENT_SUBTRACT_FROM_LIST,
-                "entity_id": entity_id
-            })
-        else:
-            _LOGGER.debug("Failed to subtarct product from list {}".format(entity_id))
+        _LOGGER.debug(f"Product was subtarcted from list {entity_id}")
+        await domain_data[DATA_DATA].async_update_data([SHOPPING_LIST_NAME], True)
+        entity.async_schedule_update_ha_state(True)
+        shopping_list_entity_id = domain_data[DATA_ENTITIES].async_get(ShoppingListSensor.to_entity_id(data[CONF_SHOPPING_LIST_ID]))
+        shopping_list_entity_id.async_schedule_update_ha_state(True)
+        hass.bus.fire(DOMAIN_EVENT, {
+            "event": EVENT_SUBTRACT_FROM_LIST,
+            "entity_id": entity_id
+        })
+    except Exception as e:
+        _LOGGER.debug(f"Failed to subtarct product ({type(e).__name__})")
 
 
 async def async_add_to_list(hass, data):
@@ -103,21 +119,18 @@ async def async_add_to_list(hass, data):
                 if product:
                     entity_id = 'sensor.product' + str(product.id)
                     entity = domain_data[DATA_ENTITIES].async_get(entity_id)
-        if entity:
-            # Product was found, add it to shopping list
-            domain_data[DATA_GROCY].add_product_to_shopping_list(entity.device_state_attributes['id'], data[CONF_SHOPPING_LIST_ID], data[CONF_AMOUNT])
-            await domain_data[DATA_DATA].async_update_data([SHOPPING_LIST_NAME], True)
-            entity.async_schedule_update_ha_state(True)
-            shopping_list_entity_id = domain_data[DATA_ENTITIES].async_get(ShoppingListSensor.to_entity_id(data[CONF_SHOPPING_LIST_ID]))
-            shopping_list_entity_id.async_schedule_update_ha_state(True)    
-            hass.bus.fire(DOMAIN_EVENT, {
-                "event": EVENT_ADDED_TO_LIST,
-                "entity_id": entity_id,
-            })
-    except requests.exceptions.HTTPError:
-        _LOGGER.debug(f"Failed to add product: barcode {data[CONF_BARCODE]}")
-    except requests.exceptions.ReadTimeout:
-        _LOGGER.debug(f"Read timeout")
+        domain_data[DATA_GROCY].add_product_to_shopping_list(entity.device_state_attributes['id'], data[CONF_SHOPPING_LIST_ID], data[CONF_AMOUNT])
+        await domain_data[DATA_DATA].async_update_data([SHOPPING_LIST_NAME], True)
+        entity.async_schedule_update_ha_state(True)
+        shopping_list_entity_id = domain_data[DATA_ENTITIES].async_get(ShoppingListSensor.to_entity_id(data[CONF_SHOPPING_LIST_ID]))
+        shopping_list_entity_id.async_schedule_update_ha_state(True)    
+        hass.bus.fire(DOMAIN_EVENT, {
+            "event": EVENT_ADDED_TO_LIST,
+            "entity_id": entity_id,
+        })
+    except Exception as e:
+        _LOGGER.debug(f"Failed to add product ({type(e).__name__})")
+
 
 async def async_add_product(hass, data):
     domain_data = hass.data[DOMAIN_DATA]
@@ -168,10 +181,8 @@ async def async_add_product(hass, data):
                             "event": EVENT_PRODUCT_ADDED,
                             "entity_id": entity_id
                         })
-    except requests.exceptions.HTTPError:
-        _LOGGER.debug(f"Failed to add product: barcode {data[CONF_BARCODE]}")
-    except requests.exceptions.ReadTimeout:
-        _LOGGER.debug(f"Read timeout")
+    except Exception as e:
+        _LOGGER.debug(f"Failed to add product ({type(e).__name__})")
 
 
 async def async_remove_product(hass, data):
@@ -205,13 +216,37 @@ async def async_remove_product(hass, data):
                 "event": EVENT_PRODUCT_REMOVED,
                 "entity_id": entity_id
             })
-    except requests.exceptions.HTTPError:
-        _LOGGER.debug(f"Failed to remove product from grocy {entity_id}")
-    except requests.exceptions.ReadTimeout:
-        _LOGGER.debug(f"Read timeout")
+    except Exception as e:
+        _LOGGER.debug(f"Failed to remove product ({type(e).__name__})")
 
 
-async def async_sync_grocy(hass, data):
+async def async_add_favorite(hass, data):
+    domain_data = hass.data[DOMAIN_DATA]
+    try:
+        entity_id = data[CONF_ENTITY_ID][0]
+        entity = domain_data[DATA_ENTITIES].async_get(entity_id)
+        domain_data[DATA_GROCY].set_userfield('products', entity.device_state_attributes['id'], 'favorite', "1")
+        # Force update to get userfieldss
+        await domain_data[DATA_DATA].async_update_data(force=True, userfields=True)
+        entity.async_schedule_update_ha_state(True)
+    except Exception as e:
+        _LOGGER.debug(f"Failed to add favorite ({type(e).__name__})")
+
+
+async def async_remove_favorite(hass, data):
+    domain_data = hass.data[DOMAIN_DATA]
+    try:
+        entity_id = data[CONF_ENTITY_ID][0]
+        entity = domain_data[DATA_ENTITIES].async_get(entity_id)
+        domain_data[DATA_GROCY].set_userfield('products', entity.device_state_attributes['id'], 'favorite', "0")
+        # Force update to get userfieldss
+        await domain_data[DATA_DATA].async_update_data(force=True, userfields=True)
+        entity.async_schedule_update_ha_state(True)
+    except Exception as e:
+        _LOGGER.debug(f"Failed to add favorite ({type(e).__name__})")
+
+
+async def async_sync(hass, data):
     domain_data = hass.data[DOMAIN_DATA]
     try:
         # Force update from grocy
@@ -242,7 +277,5 @@ async def async_sync_grocy(hass, data):
             "event": EVENT_SYNC_DONE
         })
         _LOGGER.debug('Sync done')
-    except requests.exceptions.HTTPError:
-        _LOGGER.debug(f"Grocy sync failed")
-    except requests.exceptions.ReadTimeout:
-        _LOGGER.debug(f"Read timeout")
+    except Exception as e:
+        _LOGGER.debug(f"Failed sync ({type(e).__name__})")

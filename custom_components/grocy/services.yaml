@@ -1,5 +1,5 @@
 add_to_list:
-  description: Adds the given amount of the given product to the shopping list
+  description: Adds the given amount of the given product to shopping list
   fields:
     entity_id:
       description: Product entity id(s)
@@ -12,7 +12,7 @@ add_to_list:
       example: 1
 
 subtract_from_list:
-  description: Subtract the given amount of the given product from the shopping list
+  description: Subtract the given amount of the given product from shopping list
   fields:
     entity_id:
       description: Product entity id(s)
@@ -25,7 +25,7 @@ subtract_from_list:
       example: 1
 
 add_product:
-  description: Add / update grocy product
+  description: Add / update product
   fields:
     barcode:
       description: Product barcode (EAN-13)
@@ -43,10 +43,24 @@ add_product:
       description: Online store
 
 remove_product:
-  description: Remove product from grocy (and home assistant)
+  description: Remove product
   fields:
     entity_id:
       description: Product entity id(s) or barcode sensor entity
+      example: "sensor.product100"
+
+add_favorite:
+  description: Add product to favorites
+  fields:
+    entity_id:
+      description: Product entity id(s)
+      example: "sensor.product100"
+
+remove_favorite:
+  description: Remove product from favorites
+  fields:
+    entity_id:
+      description: Product entity id(s)
       example: "sensor.product100"
 
 sync:

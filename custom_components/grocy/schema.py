@@ -41,6 +41,14 @@ ADD_PRODUCT_SERVICE_SCHEMA = vol.Schema({
     vol.Optional(CONF_PRODUCT_DESCRIPTION, default=DEFAULT_PRODUCT_DESCRIPTION): cv.string
 })
 
+ADD_FAVORITE_SERVICE_SCHEMA = vol.Schema({
+    vol.Required(CONF_ENTITY_ID): cv.entity_ids
+})
+
+REMOVE_FAVORITE_SERVICE_SCHEMA = vol.Schema({
+    vol.Required(CONF_ENTITY_ID): cv.entity_ids
+})
+
 REMOVE_PRODUCT_SERVICE_SCHEMA = vol.Schema({
     vol.Required(CONF_ENTITY_ID): cv.entity_ids
 })
