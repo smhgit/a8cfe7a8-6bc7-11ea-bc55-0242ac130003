@@ -1,3 +1,4 @@
+import json
 import logging
 import requests
 
@@ -16,20 +17,20 @@ class ProductData(object):
     def __init__(self, data):
         self._store = data['store']
         self._barcode = data['barcode']
-        self._id = data['id']
         self._name = data['name']
         self._price = data['price']
         self._product_group_id = data['group_id']
         self._product_group_name = data['group_name']
         self._picture = data['picture']
+        self._metadata = data['metadata']
+
+    @property
+    def id(self) -> int:
+        return int(self._barcode)
 
     @property
     def store(self) -> int:
         return self._store
-
-    @property
-    def id(self) -> int:
-        return self._id
 
     @property
     def name(self) -> str:
@@ -59,15 +60,18 @@ class ProductData(object):
     def picture(self) -> str:
         return self._picture
 
+    @property
+    def metadata(self) -> str:
+        '''metaadata used by store api client'''
+        return self._metadata
+
 
 class StoreApiClient(ABC):
     """Online store api client interface"""
 
-    def __init__(self, name, base_url, username, password):
+    def __init__(self, name, base_url):
         self._name = name
         self._base_url = f"https://{base_url}"
-        self._username = username
-        self._password = password
 
     @property
     def name(self):
@@ -89,7 +93,7 @@ class StoreApiClient(ABC):
         if len(resp.content) > 0:
             return resp.json()
 
-    def login(self):
+    def login(self, username, password):
         pass
 
     def get_product_by_barcode(self, barcode: str):
@@ -100,8 +104,8 @@ class NoneStoreApiClient(StoreApiClient):
     """Rami levy online store cline"""
     name = 'None'
 
-    def __init__(self, username, password):
-        super().__init__(NoneStoreApiClient.name, "", username, password)
+    def __init__(self):
+        super().__init__(NoneStoreApiClient.name, "")
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
         return None
@@ -111,8 +115,8 @@ class MySupermarketStoreApiClient(StoreApiClient):
     """MySupermarket online store client"""
     name = 'My Supermarket'
 
-    def __init__(self, username, password):
-        super().__init__(MySupermarketStoreApiClient.name, 'chp.co.il/', username, password)
+    def __init__(self):
+        super().__init__(MySupermarketStoreApiClient.name, 'chp.co.il/')
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
         parsed_json = self._do_get_request(f"autocompletion/product_extended?term={barcode}")
@@ -121,12 +125,12 @@ class MySupermarketStoreApiClient(StoreApiClient):
                 data = {
                     "store": self._name,
                     "barcode": item['id'].split('_')[1],
-                    "id": parse_int(item['id'].split('_')[1]),
                     "name": item['value'],
                     "group_id": 0,
                     "price": 0.0,
                     "group_name": "Others",
-                    "picture": None
+                    "picture": None,
+                    "metadata": ""
                 }
                 if data['barcode'] == barcode:
                     return ProductData(item)
@@ -136,8 +140,8 @@ class ShufersalStoreApiClient(StoreApiClient):
     """Shufersal online store client"""
     name = 'Shufersal'
 
-    def __init__(self, username, password):
-        super().__init__(ShufersalStoreApiClient.name, 'www.shufersal.co.il', username, password)
+    def __init__(self):
+        super().__init__(ShufersalStoreApiClient.name, 'www.shufersal.co.il')
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
         limit = 10
@@ -147,14 +151,15 @@ class ShufersalStoreApiClient(StoreApiClient):
                 data = {
                     "store": self._name,
                     "barcode": item['sku'],
-                    "id": parse_int(item.get('sku')),
                     "name": item['name'],
                     "group_id": 0,
                     "price": 0.0,
                     "group_name": "Others",
-                    "picture": item['images'][0]['url']
+                    "picture": item['images'][0]['url'],
+                    "metadata": ""
                 }
                 if data['barcode'] == barcode:
+                    _LOGGER.debug(item)
                     return ProductData(item)
 
 
@@ -162,11 +167,18 @@ class RamiLevyStoreApiClient(StoreApiClient):
     """Rami levy online store client"""
     name = 'Rami Levy'
 
-    def __init__(self, username, password):
-        super().__init__(RamiLevyStoreApiClient.name, 'www.rami-levy.co.il', username, password)
+    def __init__(self):
+        super().__init__(RamiLevyStoreApiClient.name, 'www.rami-levy.co.il')
         self._store_id = 331
 
-    def login(self):
+    def login(self, username, password):
+        pass
+
+    def logout(self):
+        pass
+
+    def add_to_cart(self):
+        # {"store":331,"items":[{"C":329258,"Quantity":"5.00"}]}
         pass
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
@@ -180,15 +192,16 @@ class RamiLevyStoreApiClient(StoreApiClient):
                     data = {
                         "store": self._name,
                         "barcode": str(item['barcode']),
-                        "id": parse_int(str(item['barcode'])),
                         "name": item['name'],
                         "group_id": item['group_id'],
                         "price": parse_float(item['price']['price']),
                         "group_name": "Others",
                         "picture": "https://static.rami-levy.co.il/storage/images/{}/{}/small.jpg".format(
-                                        item['barcode'], item['id'])
+                                        item['barcode'], item['id']),
+                        "metadata": json.dumps({'id': item['id']})
                     }
                     if data['barcode'] == barcode:
+                        _LOGGER.debug(item)
                         return ProductData(data)
                 # Next page
                 index += len(parsed_json['data'])
@@ -197,11 +210,11 @@ class RamiLevyStoreApiClient(StoreApiClient):
                 break
 
 
-def get_store_api_client(store_name: str = 'default', username: str = None, password: str = None):
+def get_store_api_client(store_name: str = 'default'):
     if store_name.lower() == RamiLevyStoreApiClient.name.lower():
-        return RamiLevyStoreApiClient(username, password)
+        return RamiLevyStoreApiClient()
     elif store_name.lower() == ShufersalStoreApiClient.name.lower():
-        return ShufersalStoreApiClient(username, password)
+        return ShufersalStoreApiClient()
     elif store_name.lower() == MySupermarketStoreApiClient.name.lower():
-        return MySupermarketStoreApiClient(username, password)
+        return MySupermarketStoreApiClient()
     return NoneStoreApiClient()

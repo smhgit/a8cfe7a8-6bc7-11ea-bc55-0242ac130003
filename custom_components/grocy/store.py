@@ -7,7 +7,9 @@ class Store:
     """Online store"""
     
     def __init__(self, store_name: str = 'default', username: str = None, password: str = None):
-        self._client = get_store_api_client(store_name, username, password)
+        self._client = get_store_api_client(store_name)
+        self._username = username
+        self._password = password
 
     @property
     def name(self):
@@ -16,10 +18,10 @@ class Store:
     def get_product_by_barcode(self, barcode: str):
         return self._client.get_product_by_barcode(barcode)
 
-    def login(self):
-        pass
-
     def add_to_cart(self):
+        self._client.login(self._username, self._password)
+        self._client.add_to_cart(self)
+        self._client.logout()
         pass
 
     def delete_cart(self):

@@ -42,7 +42,7 @@ async def async_setup(hass, config):
     grocy_host = conf.get(CONF_HOST)
     grocy_apikey = conf.get(CONF_APIKEY)
 
-    # Extarct address and port
+    # Extarct address and ports
     host = "{}:{}".format(grocy_host.split(":")[0], grocy_host.split(":")[1])
     port = grocy_host.split(":")[2]
 

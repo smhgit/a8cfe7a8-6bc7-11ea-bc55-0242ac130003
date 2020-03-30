@@ -11,13 +11,18 @@ from .const import (DOMAIN,
                     CONF_BARCODE, CONF_STORE, CONF_PRODUCT_GROUP_ID,
                     CONF_NAME, CONF_VALUE,
                     CONF_PRODUCT_LOCATION_ID, CONF_PRODUCT_DESCRIPTION,
+                    CONF_STORE_USERNAME, CONF_STORE_PASSWORD,
                     DEFAULT_AMOUNT, DEFAULT_SHOPPING_LIST_ID, DEFAULT_STORE,
                     DEFAULT_PRODUCT_DESCRIPTION)
 
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
         vol.Required(CONF_HOST): cv.string,
-        vol.Required(CONF_APIKEY): cv.string
+        vol.Required(CONF_APIKEY): cv.string,
+        vol.Optional(CONF_STORE): vol.Schema({
+            vol.Required(CONF_STORE_USERNAME): cv.string,
+            vol.Required(CONF_STORE_PASSWORD): cv.string,
+            })
     })
 }, extra=vol.ALLOW_EXTRA)
 

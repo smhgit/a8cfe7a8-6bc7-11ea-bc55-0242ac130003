@@ -48,6 +48,8 @@ CONF_PRODUCT_DESCRIPTION = 'product_description'
 CONF_PRODUCT_GROUP_ID = 'product_group_id'
 CONF_PRODUCT_LOCATION_ID = 'product_location_id'
 CONF_STORE = 'store'
+CONF_STORE_USERNAME = 'username'
+CONF_STORE_PASSWORD = 'password'
 CONF_BARCODE = 'barcode'
 CONF_UNIT_OF_MEASUREMENT = 'unit_of_measurement'
 
@@ -64,7 +66,8 @@ ADD_PRODUCT_SERVICE = DOMAIN_SERVICE.format('add_product')
 REMOVE_PRODUCT_SERVICE = DOMAIN_SERVICE.format('remove_product')
 ADD_FAVORITE_SERVICE = DOMAIN_SERVICE.format('add_favorite')
 REMOVE_FAVORITE_SERVICE = DOMAIN_SERVICE.format('remove_favorite')
-SYNC_GROCY_SERVICE = DOMAIN_SERVICE.format('sync')
+SYNC_SERVICE = DOMAIN_SERVICE.format('sync')
+DEBUG_SERVICE = DOMAIN_SERVICE.format('debug')
 
 # Device classes
 STOCK_NAME = "stock"
