@@ -79,6 +79,7 @@ class ProductData(GrocyObject):
         self._allow_partial_units_in_stock = bool(parsed_json.get('allow_partial_units_in_stock', None) == "true")
         self._min_stock_amount = parse_int(parsed_json.get('min_stock_amount', None), 0)
         self._default_best_before_days = parse_int(parsed_json.get('default_best_before_days', None))
+        self._userfields = {}
 
         barcodes_raw = parsed_json.get('barcode', "")
         if barcodes_raw is None:
@@ -86,11 +87,6 @@ class ProductData(GrocyObject):
         else:
             self._barcodes = barcodes_raw.split(",")
 
-        self._userfields = {
-            "price": "0.0",
-            "store": "default"
-        }
-        
     @property
     def product_group_id(self) -> int:
         return self._product_group_id

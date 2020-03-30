@@ -103,7 +103,7 @@ async def async_subtract_from_list(hass, data):
             "entity_id": entity_id
         })
     except Exception as e:
-        _LOGGER.debug(f"Failed to subtarct product ({type(e).__name__})")
+        _LOGGER.error(f"Failed to subtarct product ({type(e).__name__})")
 
 
 async def async_add_to_list(hass, data):
@@ -129,7 +129,7 @@ async def async_add_to_list(hass, data):
             "entity_id": entity_id,
         })
     except Exception as e:
-        _LOGGER.debug(f"Failed to add product ({type(e).__name__})")
+        _LOGGER.error(f"Failed to add product ({type(e).__name__})")
 
 
 async def async_add_product(hass, data):
@@ -166,7 +166,9 @@ async def async_add_product(hass, data):
             )
             domain_data[DATA_GROCY].set_userfields('products', store_product.id, {
                 'price': store_product.price,
-                'store': data[CONF_STORE].lower()
+                'store': data[CONF_STORE].lower(),
+                'favorite': "0",
+                'popular': "0"
             })
             # Sync with grocy
             await domain_data[DATA_DATA].async_update_data([PRODUCTS_NAME], userfields=True)
@@ -182,7 +184,8 @@ async def async_add_product(hass, data):
                             "entity_id": entity_id
                         })
     except Exception as e:
-        _LOGGER.debug(f"Failed to add product ({type(e).__name__})")
+        _LOGGER.error(f"Failed to add product ({type(e).__name__})")
+        _LOGGER.debug(e)
 
 
 async def async_remove_product(hass, data):
@@ -217,7 +220,7 @@ async def async_remove_product(hass, data):
                 "entity_id": entity_id
             })
     except Exception as e:
-        _LOGGER.debug(f"Failed to remove product ({type(e).__name__})")
+        _LOGGER.error(f"Failed to remove product ({type(e).__name__})")
 
 
 async def async_add_favorite(hass, data):
@@ -230,7 +233,7 @@ async def async_add_favorite(hass, data):
         await domain_data[DATA_DATA].async_update_data(force=True, userfields=True)
         entity.async_schedule_update_ha_state(True)
     except Exception as e:
-        _LOGGER.debug(f"Failed to add favorite ({type(e).__name__})")
+        _LOGGER.error(f"Failed to add favorite ({type(e).__name__})")
 
 
 async def async_remove_favorite(hass, data):
@@ -243,7 +246,7 @@ async def async_remove_favorite(hass, data):
         await domain_data[DATA_DATA].async_update_data(force=True, userfields=True)
         entity.async_schedule_update_ha_state(True)
     except Exception as e:
-        _LOGGER.debug(f"Failed to add favorite ({type(e).__name__})")
+        _LOGGER.error(f"Failed to add favorite ({type(e).__name__})")
 
 
 async def async_sync(hass, data):
@@ -278,4 +281,4 @@ async def async_sync(hass, data):
         })
         _LOGGER.debug('Sync done')
     except Exception as e:
-        _LOGGER.debug(f"Failed sync ({type(e).__name__})")
+        _LOGGER.error(f"Failed sync ({type(e).__name__})")

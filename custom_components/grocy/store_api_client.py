@@ -63,7 +63,7 @@ class ProductData(object):
 class StoreApiClient(ABC):
     """Online store api client interface"""
 
-    def __init__(self, name, base_url, username, pssword):
+    def __init__(self, name, base_url, username, password):
         self._name = name
         self._base_url = f"https://{base_url}"
         self._username = username
@@ -100,7 +100,7 @@ class NoneStoreApiClient(StoreApiClient):
     """Rami levy online store cline"""
     name = 'None'
 
-    def __init__(self, username, pssword):
+    def __init__(self, username, password):
         super().__init__(NoneStoreApiClient.name, "", username, password)
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
@@ -111,7 +111,7 @@ class MySupermarketStoreApiClient(StoreApiClient):
     """MySupermarket online store client"""
     name = 'My Supermarket'
 
-    def __init__(self, username, pssword):
+    def __init__(self, username, password):
         super().__init__(MySupermarketStoreApiClient.name, 'chp.co.il/', username, password)
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
@@ -136,7 +136,7 @@ class ShufersalStoreApiClient(StoreApiClient):
     """Shufersal online store client"""
     name = 'Shufersal'
 
-    def __init__(self, username, pssword):
+    def __init__(self, username, password):
         super().__init__(ShufersalStoreApiClient.name, 'www.shufersal.co.il', username, password)
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
@@ -162,7 +162,7 @@ class RamiLevyStoreApiClient(StoreApiClient):
     """Rami levy online store client"""
     name = 'Rami Levy'
 
-    def __init__(self, username, pssword):
+    def __init__(self, username, password):
         super().__init__(RamiLevyStoreApiClient.name, 'www.rami-levy.co.il', username, password)
         self._store_id = 331
 
