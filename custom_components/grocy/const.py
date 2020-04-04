@@ -1,6 +1,6 @@
 """Constants for grocy."""
 
-VERSION = "0.0.33"
+VERSION = "0.0.34"
 
 DOMAIN = "grocy"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
@@ -28,6 +28,7 @@ DOMAIN_SERVICE = "{}"
 DATA_GROCY = "grocy"
 DATA_DATA = "data"
 DATA_ENTITIES = "entities"
+DATA_STORE_CONF = "store_conf"
 
 # Domain events
 EVENT_ADDED_TO_LIST='added_to_list'

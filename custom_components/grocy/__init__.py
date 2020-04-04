@@ -12,8 +12,8 @@ from .services import setup_services
 from .helpers import async_check_files
 
 from .const import (DOMAIN, DOMAIN_DATA, REQUIRED_FILES, VERSION, ISSUE_URL,
-                    CONF_APIKEY,
-                    DATA_GROCY, DATA_DATA, DATA_ENTITIES,
+                    CONF_APIKEY, CONF_STORE,
+                    DATA_GROCY, DATA_DATA, DATA_ENTITIES, DATA_STORE_CONF,
                     PRODUCTS_NAME, SHOPPING_LISTS_NAME, SHOPPING_LIST_NAME, LOCATIONS_NAME,
                     QUANTITY_UNITS_NAME, PRODUCT_GROUPS_NAME)
 from .schema import CONFIG_SCHEMA
@@ -58,6 +58,7 @@ async def async_setup(hass, config):
         DATA_GROCY: grocy,
         DATA_DATA: Data(hass, grocy),
         DATA_ENTITIES: Entities(hass),
+        DATA_STORE_CONF: conf.get(CONF_STORE),
         PRODUCTS_NAME: [],
         SHOPPING_LIST_NAME: [],
         SHOPPING_LISTS_NAME: [],

@@ -5,6 +5,7 @@ import requests
 from abc import ABC, abstractmethod
 
 from urllib.parse import urljoin
+from requests.auth import HTTPBasicAuth
 
 from .utils import parse_int, parse_float
 
@@ -72,6 +73,7 @@ class StoreApiClient(ABC):
     def __init__(self, name, base_url):
         self._name = name
         self._base_url = f"https://{base_url}"
+        self._session = None
 
     @property
     def name(self):
@@ -95,6 +97,15 @@ class StoreApiClient(ABC):
 
     def login(self, username, password):
         pass
+
+    def logout(self):
+        pass
+
+    def add_to_cart(self, product_metadata, quantity: float):
+        _LOGGER.debug('add_to_cart must be implemented by derived class')
+
+    def empty_cart(self):
+        _LOGGER.debug('empty_cart must be implemented by derived class')
 
     def get_product_by_barcode(self, barcode: str):
         pass
@@ -170,16 +181,63 @@ class RamiLevyStoreApiClient(StoreApiClient):
     def __init__(self):
         super().__init__(RamiLevyStoreApiClient.name, 'www.rami-levy.co.il')
         self._store_id = 331
+        self._token = None
 
     def login(self, username, password):
-        pass
+        _LOGGER.debug(f"Login to store {self.name}")
+        self._session = requests.Session()
+        data = {
+            "username": username,
+            "password": password
+        }
+        headers = {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
+        req_url = urljoin('https://api-prod.rami-levy.co.il', 'api/v1/auth/login')
+        response = self._session.post(req_url, headers=headers, data=json.dumps(data))
+        response.raise_for_status()
+        self._token = response.json()['user']['token']
 
     def logout(self):
+        _LOGGER.debug(f"Store logout")
+        self._session = None
+        self._token = None
         pass
 
-    def add_to_cart(self):
-        # {"store":331,"items":[{"C":329258,"Quantity":"5.00"}]}
-        pass
+    def add_to_cart(self, product_metadata, quantity: float):
+        metadata = json.loads(product_metadata)
+        _LOGGER.debug(f"Add to cart {quantity} {metadata['id']}")
+        data = {
+            "store":331,
+            "items": [
+                {
+                    "C": metadata['id'],
+                    "Quantity": str(quantity)
+                }
+            ]
+        }
+        headers = {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Content-Length': '0',
+            'EcomToken': self._token
+        }
+        req_url = urljoin('https://api-prod.rami-levy.co.il', 'api/v1/cart/add-line-to-cart')
+        response = self._session.post(req_url, headers=headers, data=json.dumps(data))
+        response.raise_for_status()
+
+    def empty_cart(self):
+        _LOGGER.debug(f"Empty cart")
+        headers = {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Content-Length': '0',
+            'EcomToken': self._token
+        }
+        req_url = urljoin('https://api-prod.rami-levy.co.il', 'api/v1/cart/delete-cart')
+        response = self._session.post(req_url, headers=headers)
+        response.raise_for_status()
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
         index = 0
@@ -210,7 +268,8 @@ class RamiLevyStoreApiClient(StoreApiClient):
                 break
 
 
-def get_store_api_client(store_name: str = 'default'):
+def get_store_api_client(store_name):
+    '''Create and return store api client'''
     if store_name.lower() == RamiLevyStoreApiClient.name.lower():
         return RamiLevyStoreApiClient()
     elif store_name.lower() == ShufersalStoreApiClient.name.lower():

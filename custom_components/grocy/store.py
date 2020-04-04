@@ -8,8 +8,6 @@ class Store:
     
     def __init__(self, store_name: str = 'default', username: str = None, password: str = None):
         self._client = get_store_api_client(store_name)
-        self._username = username
-        self._password = password
 
     @property
     def name(self):
@@ -18,14 +16,18 @@ class Store:
     def get_product_by_barcode(self, barcode: str):
         return self._client.get_product_by_barcode(barcode)
 
-    def add_to_cart(self):
-        self._client.login(self._username, self._password)
-        self._client.add_to_cart(self)
-        self._client.logout()
-        pass
+    def login(self, username, password):
+        self._client.login(username, password)
 
-    def delete_cart(self):
-        pass
+    def logout(self):
+        self._client.logout()
+
+    def add_to_cart(self, product_metadata, quantity: float = 1):
+        self._client.add_to_cart(product_metadata, quantity)
+
+    def empty_cart(self):
+        self._client.empty_cart()
+
 
 # def test():
 #     store = Store(RamiLevyStoreApiClient())

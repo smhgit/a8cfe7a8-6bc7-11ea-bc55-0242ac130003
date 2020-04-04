@@ -184,8 +184,9 @@ class GrocySensor(GrocySensorEntity):
         super().__init__(hass)
         self._state = None
         self._attributes = {
+            'total_products': 0,
             'integration_version': VERSION,
-            'grocy_version': '2.6.0'
+            'grocy_version': '2.6.1'
         }
         self._name = 'Grocy'
         self._icon = 'mdi:cart'
@@ -194,3 +195,4 @@ class GrocySensor(GrocySensorEntity):
         """Fetch new state data for the sensor."""
         _LOGGER.debug("Update grocy sensor")
         self._state = 'connected'
+        self._attributes['total_products'] = len(self.hass.data[DOMAIN_DATA][DATA_ENTITIES].async_get_all_by_class_name('ProductSensor'))
