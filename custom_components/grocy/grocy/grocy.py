@@ -2,8 +2,10 @@ import logging
 
 from typing import List
 
-from .grocy_api_client import (DEFAULT_PORT_NUMBER, GrocyApiClient, ShoppingList,
-                               LocationData, ProductData, LocationData, QuantityUnitData, ProductGroupData,
+from .grocy_api_client import (DEFAULT_PORT_NUMBER,
+                               GrocyApiClient, ShoppingList,
+                               LocationData, ProductData, LocationData,
+                               QuantityUnitData, ProductGroupData,
                                ShoppingListItem)
 
 _LOGGER = logging.getLogger(__name__)

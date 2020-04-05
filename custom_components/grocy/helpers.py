@@ -7,6 +7,7 @@ from .const import (DOMAIN, REQUIRED_FILES)
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_check_files(hass):
     """Return bool that indicates if all files are present."""
 

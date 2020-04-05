@@ -1,5 +1,6 @@
 '''Custom component services'''
 
+import json
 import logging
 import requests
 
@@ -301,16 +302,22 @@ async def async_debug(hass, data):
         _LOGGER.debug('Debug service')
         domain_data = hass.data[DOMAIN_DATA]
         try:
-            store = Store('Rami Levy')
-            store_conf = domain_data[DATA_STORE_CONF]
-            store.login(store_conf[CONF_STORE_USERNAME], store_conf[CONF_STORE_PASSWORD])
-            store.empty_cart()
+            # Get all items in grocy shopping list
+            items = []
             for item in domain_data[SHOPPING_LIST_NAME]:
                 if item.shopping_list_id == 1:
                     for product in domain_data[PRODUCTS_NAME]:
                         if product.id == item.product_id:
-                            store.add_to_cart(product.userfields['metadata'], item.amount)
-            store.logout()
+                            meta = json.loads(product.userfields['metadata'])
+                            items.append({'id': meta['id'], 'quantity': item.amount})
+            # Send items to store online cart
+            if len(items):
+                store = Store('Rami Levy')
+                store_conf = domain_data[DATA_STORE_CONF]
+                # store.login(store_conf[CONF_STORE_USERNAME], store_conf[CONF_STORE_PASSWORD])
+                # store.empty_cart()
+                store.fill_cart(items)
+                # store.logout()
         except Exception as e:
             _LOGGER.error(f"Failed add to cart ({type(e).__name__})")
             _LOGGER.debug(e)

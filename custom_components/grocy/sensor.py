@@ -7,8 +7,6 @@ from datetime import timedelta
 from homeassistant.helpers.entity import Entity, async_generate_entity_id
 from homeassistant.components.sensor import ENTITY_ID_FORMAT
 
-from .store import Store
-
 from .const import (VERSION, DOMAIN, DOMAIN_DATA, DATA_ENTITIES,
                     PRODUCTS_NAME, SHOPPING_LISTS_NAME, SHOPPING_LIST_NAME, LOCATIONS_NAME,
                     QUANTITY_UNITS_NAME, PRODUCT_GROUPS_NAME)
