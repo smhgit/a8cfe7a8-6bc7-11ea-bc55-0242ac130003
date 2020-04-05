@@ -6,8 +6,8 @@ class NoneStoreApiClient(StoreApiClient):
     """Rami levy online store cline"""
     name = 'None'
 
-    def __init__(self):
-        super().__init__(NoneStoreApiClient.name, "")
+    def __init__(self, username: str = None, password: str = None):
+        super().__init__(NoneStoreApiClient.name, "", username, password)
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
         return None

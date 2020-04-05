@@ -14,8 +14,8 @@ class MySupermarketStoreApiClient(StoreApiClient):
     """MySupermarket online store client"""
     name = 'My Supermarket'
 
-    def __init__(self):
-        super().__init__(MySupermarketStoreApiClient.name, 'chp.co.il/')
+    def __init__(self, username: str = None, password: str = None):
+        super().__init__(MySupermarketStoreApiClient.name, 'chp.co.il/', username, password)
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
         parsed_json = self._do_get_request(f"autocompletion/product_extended?term={barcode}")

@@ -1,5 +1,6 @@
 '''Rami Levy Israel online store'''
 
+import json
 import logging
 
 from urllib.parse import urljoin
@@ -16,8 +17,8 @@ class RamiLevyStoreApiClient(StoreApiClient):
     """Rami levy online store client"""
     name = 'Rami Levy'
 
-    def __init__(self):
-        super().__init__(RamiLevyStoreApiClient.name, 'www.rami-levy.co.il')
+    def __init__(self, username: str = None, password: str = None):
+        super().__init__(RamiLevyStoreApiClient.name, 'www.rami-levy.co.il', username, password)
         self._store_id = 331
         self._token = None
 

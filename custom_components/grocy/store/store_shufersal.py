@@ -14,8 +14,8 @@ class ShufersalStoreApiClient(StoreApiClient):
     """Shufersal online store client"""
     name = 'Shufersal'
 
-    def __init__(self):
-        super().__init__(ShufersalStoreApiClient.name, 'www.shufersal.co.il')
+    def __init__(self, username: str = None, password: str = None):
+        super().__init__(ShufersalStoreApiClient.name, 'www.shufersal.co.il', username, password)
 
     def get_product_by_barcode(self, barcode: str) -> ProductData:
         limit = 10

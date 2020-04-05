@@ -8,7 +8,7 @@ from homeassistant.core import callback
 
 from homeassistant.const import CONF_HOST, CONF_SCAN_INTERVAL, CONF_ENTITY_ID
 
-from .store import Store
+from .store import get_store
 
 from .sensor import ProductSensor, ShoppingListSensor
 from .utils import contains
@@ -161,7 +161,8 @@ async def async_add_product(hass, data):
             })
         else:
             # Search store for product
-            store_product = Store(data[CONF_STORE]).get_product_by_barcode(data[CONF_BARCODE])
+            store = get_store(data[CONF_STORE])
+            store_product = store.get_product_by_barcode(data[CONF_BARCODE])
             if not store_product:
                 _LOGGER.debug(f"Product was not found: {data[CONF_BARCODE]}")
                 hass.bus.fire(DOMAIN_EVENT, {
@@ -281,6 +282,7 @@ async def async_sync(hass, data):
                 _LOGGER.debug(f"Remove product: {entity.entity_id}")
         # Update products userfields
         for product in domain_data[PRODUCTS_NAME]:
+            store = get_store(product.store)
             store_product = Store(product.store).get_product_by_barcode(product.barcodes[0])
             if store_product:
                 domain_data[DATA_GROCY].set_userfield('products', product.id, 'price', store_product.price)
@@ -312,7 +314,7 @@ async def async_debug(hass, data):
                             items.append({'id': meta['id'], 'quantity': item.amount})
             # Send items to store online cart
             if len(items):
-                store = Store('Rami Levy')
+                store = get_store('Rami Levy')
                 store_conf = domain_data[DATA_STORE_CONF]
                 # store.login(store_conf[CONF_STORE_USERNAME], store_conf[CONF_STORE_PASSWORD])
                 # store.empty_cart()

@@ -67,13 +67,15 @@ class StoreApiClient(ABC):
     """Online store api client interface"""
     name = 'None'
     
-    def __init__(self, name, base_url):
+    def __init__(self, name: str, base_url: str, username: str, password: str):
         self._name = name
         self._base_url = f"https://{base_url}"
         self._session = None
+        self._username = username
+        self._password = password
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     def _do_get_request(self, end_url, timeout: int = 20, verify_ssl: bool = True, headers = { "accept": "application/json" }):
