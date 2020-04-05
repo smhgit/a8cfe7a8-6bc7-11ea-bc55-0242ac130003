@@ -3,7 +3,7 @@
 from .store_api_client import StoreApiClient, ProductData
 
 class NoneStoreApiClient(StoreApiClient):
-    """Rami levy online store cline"""
+    """None store client"""
     name = 'None'
 
     def __init__(self, username: str = None, password: str = None):

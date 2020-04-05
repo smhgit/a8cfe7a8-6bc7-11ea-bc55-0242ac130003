@@ -2,8 +2,8 @@
 
 from .store_none import NoneStoreApiClient
 from .store_rami_levy import RamiLevyStoreApiClient
-from .store_my_supermarket import MySupermarketStoreApiClient
 from .store_shufersal import ShufersalStoreApiClient
+from .store_my_supermarket import MySupermarketStoreApiClient
 
 
 def get_store(store_name: str):

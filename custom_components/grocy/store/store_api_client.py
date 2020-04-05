@@ -65,8 +65,7 @@ class ProductData(object):
 
 class StoreApiClient(ABC):
     """Online store api client interface"""
-    name = 'None'
-    
+        
     def __init__(self, name: str, base_url: str, username: str, password: str):
         self._name = name
         self._base_url = f"https://{base_url}"
@@ -94,17 +93,18 @@ class StoreApiClient(ABC):
         if len(resp.content) > 0:
             return resp.json()
 
-    def login(self, username, password):
+    def get_product_by_barcode(self, barcode: str):
+        '''Return store product by barcode'''
+        pass
+
+    def login(self, username: str, password: str):
         pass
 
     def logout(self):
         pass
 
-    def add_to_cart(self, product_metadata, quantity: float):
-        _LOGGER.debug('add_to_cart must be implemented by derived class')
+    def fill_cart(self, products):
+        _LOGGER.debug('fill_cart must be implemented')
 
     def empty_cart(self):
-        _LOGGER.debug('empty_cart must be implemented by derived class')
-
-    def get_product_by_barcode(self, barcode: str):
-        return None
+        _LOGGER.debug('empty_cart must be implemented')

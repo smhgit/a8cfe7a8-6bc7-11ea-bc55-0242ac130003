@@ -1,6 +1,7 @@
 '''Shufersal Levy Israel online store'''
 
 import logging
+import requests
 
 from urllib.parse import urljoin
 from requests.auth import HTTPBasicAuth
