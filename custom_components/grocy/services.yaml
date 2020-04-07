@@ -63,5 +63,11 @@ remove_favorite:
       description: Product entity id(s)
       example: "sensor.product100"
 
+fill_cart:
+  description: Fills online store cart with the shopping list items
+
+clear_cart:
+  description: Clear online store cart
+
 sync:
   description: Synchronize with grocy database

@@ -91,7 +91,6 @@ class RamiLevyStoreApiClient(StoreApiClient):
         response.raise_for_status()
 
     def empty_cart(self):
-        _LOGGER.debug(f"Empty cart")
         headers = {
             'Accept': 'application/json, text/plain, */*',
             'Content-Type': 'application/json;charset=UTF-8',

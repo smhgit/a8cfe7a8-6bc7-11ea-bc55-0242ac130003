@@ -6,7 +6,8 @@ import requests
 
 from homeassistant.core import callback
 
-from homeassistant.const import CONF_HOST, CONF_SCAN_INTERVAL, CONF_ENTITY_ID
+from homeassistant.const import (CONF_HOST, CONF_SCAN_INTERVAL, CONF_ENTITY_ID,
+                                 CONF_USERNAME, CONF_PASSWORD)
 
 from .store import get_store
 
@@ -17,12 +18,12 @@ from .const import (DOMAIN, DOMAIN_DATA, DOMAIN_EVENT,
                     DATA_GROCY, DATA_DATA, DATA_ENTITIES, DATA_STORE_CONF,
                     CONF_AMOUNT, CONF_SHOPPING_LIST_ID,
                     CONF_BARCODE, CONF_STORE, CONF_PRODUCT_GROUP_ID, CONF_UNIT_OF_MEASUREMENT,
-                    CONF_PRODUCT_LOCATION_ID, CONF_PRODUCT_DESCRIPTION,
-                    CONF_STORE_USERNAME, CONF_STORE_PASSWORD,
+                    CONF_PRODUCT_LOCATION_ID, CONF_PRODUCT_DESCRIPTION, CONF_NAME,
                     SYNC_SERVICE, DEBUG_SERVICE,
                     ADD_TO_LIST_SERVICE, SUBTRACT_FROM_LIST_SERVICE,
                     ADD_PRODUCT_SERVICE, REMOVE_PRODUCT_SERVICE,
                     ADD_FAVORITE_SERVICE, REMOVE_FAVORITE_SERVICE,
+                    FILL_CART_SERVICE, EMPTY_CART_SERVICE,
                     PRODUCTS_NAME, SHOPPING_LIST_NAME,
                     EVENT_ADDED_TO_LIST, EVENT_SUBTRACT_FROM_LIST, EVENT_PRODUCT_ADDED,
                     EVENT_PRODUCT_REMOVED, EVENT_PRODUCT_UPDATED, EVENT_SYNC_DONE, EVENT_GROCY_ERROR)
@@ -76,6 +77,20 @@ def setup_services(hass):
         hass.async_add_job(async_remove_favorite(hass, call.data))
     hass.services.async_register(
         DOMAIN, REMOVE_FAVORITE_SERVICE, handle_remove_favorite_service, schema=REMOVE_FAVORITE_SERVICE_SCHEMA
+        )
+
+    @callback
+    def handle_fill_cart_service(call):
+        hass.async_add_job(async_fill_cart(hass, call.data))
+    hass.services.async_register(
+        DOMAIN, FILL_CART_SERVICE, handle_fill_cart_service
+        )
+
+    @callback
+    def handle_empty_cart_service(call):
+        hass.async_add_job(async_empty_cart(hass, call.data))
+    hass.services.async_register(
+        DOMAIN, EMPTY_CART_SERVICE, handle_empty_cart_service
         )
 
     @callback
@@ -300,26 +315,42 @@ async def async_sync(hass, data):
         _LOGGER.debug(e)
 
 
+async def async_fill_cart(hass, data):
+    domain_data = hass.data[DOMAIN_DATA]
+    try:
+        # Get all items in grocy shopping list
+        items = []
+        for item in domain_data[SHOPPING_LIST_NAME]:
+            if item.shopping_list_id == 1:
+                for product in domain_data[PRODUCTS_NAME]:
+                    if product.id == item.product_id:
+                        meta = json.loads(product.userfields['metadata'])
+                        items.append({'id': meta['id'], 'quantity': item.amount})
+        # Send items to store online cart
+        if len(items):
+            store_conf = domain_data[DATA_STORE_CONF]
+            store = get_store(store_conf[CONF_NAME])
+            store.login(store_conf[CONF_USERNAME], store_conf[CONF_PASSWORD])
+            store.empty_cart()
+            store.fill_cart(items)
+            store.logout()
+    except Exception as e:
+        _LOGGER.error(f"Failed to fill online store cart ({type(e).__name__})")
+        _LOGGER.debug(e)
+
+
+async def async_empty_cart(hass, data):
+    domain_data = hass.data[DOMAIN_DATA]
+    try:
+        store_conf = domain_data[DATA_STORE_CONF]
+        store = get_store(store_conf[CONF_NAME])
+        store.login(store_conf[CONF_USERNAME], store_conf[CONF_PASSWORD])
+        store.empty_cart()
+        store.logout()
+    except Exception as e:
+        _LOGGER.error(f"Failed to empty online store cart ({type(e).__name__})")
+        _LOGGER.debug(e)
+
+
 async def async_debug(hass, data):
-        _LOGGER.debug('Debug service')
-        domain_data = hass.data[DOMAIN_DATA]
-        try:
-            # Get all items in grocy shopping list
-            items = []
-            for item in domain_data[SHOPPING_LIST_NAME]:
-                if item.shopping_list_id == 1:
-                    for product in domain_data[PRODUCTS_NAME]:
-                        if product.id == item.product_id:
-                            meta = json.loads(product.userfields['metadata'])
-                            items.append({'id': meta['id'], 'quantity': item.amount})
-            # Send items to store online cart
-            if len(items):
-                store = get_store('Rami Levy', store_conf[CONF_STORE_USERNAME], store_conf[CONF_STORE_PASSWORD])
-                store_conf = domain_data[DATA_STORE_CONF]
-                store.login()
-                store.empty_cart()
-                store.fill_cart(items)
-                store.logout()
-        except Exception as e:
-            _LOGGER.error(f"Failed add to cart ({type(e).__name__})")
-            _LOGGER.debug(e)
+    _LOGGER.debug('Debug service')
