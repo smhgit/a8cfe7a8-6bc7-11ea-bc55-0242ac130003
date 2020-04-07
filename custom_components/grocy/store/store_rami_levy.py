@@ -64,8 +64,9 @@ class RamiLevyStoreApiClient(StoreApiClient):
         }
         req_url = urljoin('https://api-prod.rami-levy.co.il', 'api/v1/auth/login')
         response = self._session.post(req_url, headers=headers, data=json.dumps(data))
-        _LOGGER.debug(f"POST {req_url} {response.status_code}")
+        _LOGGER.debug(f"POST {req_url} {headers} {response.status_code}")
         response.raise_for_status()
+        _LOGGER.debug(f"RESPONSE: {response.json()['user']}")
         self._token = response.json()['user']['token']
 
     def logout(self):
@@ -74,30 +75,56 @@ class RamiLevyStoreApiClient(StoreApiClient):
         self._token = None
 
     def fill_cart(self, products):
-        headers = {
-            'Accept': 'application/json, text/plain, */*',
-            'Content-Type': 'application/json;charset=UTF-8',
-            # 'Content-Length': '0',
-            'EcomToken': self._token
-        }
         # Convert items to store format
-        data = {
+        data = json.dumps({
             "store": self._store_id,
             "items": list(map(lambda i: {"C": i["id"], "Quantity": str(i['quantity'])}, products))
+        })
+        headers = {
+            'Origin': 'https://www.rami-levy.co.il',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9,he-IL;q=0.8,he;q=0.7',
+            'Locale': 'he',
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Content-Length': str(len(data)),
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:71.0) Gecko/20100101 Firefox/71.0',
+            'ecomtoken': self._token
         }
         req_url = urljoin('https://api-prod.rami-levy.co.il', 'api/v1/cart/add-line-to-cart')
-        response = self._session.post(req_url, headers=headers, data=json.dumps(data))
-        _LOGGER.debug(f"POST {req_url} {data} {response.status_code}")
+        response = self._session.post(req_url, headers=headers, data=data)
+        _LOGGER.debug(f"POST {req_url} {headers} {data} {response.status_code}")
         response.raise_for_status()
+
+    def get_cart(self):
+        headers = {
+            'Origin': 'https://www.rami-levy.co.il',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9,he-IL;q=0.8,he;q=0.7',
+            'Locale': 'he',
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Content-Length': '0',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:71.0) Gecko/20100101 Firefox/71.0',
+            'ecomtoken': self._token
+        }
+        req_url = urljoin('https://api-prod.rami-levy.co.il', 'api/v1/cart/get-cart')
+        response = self._session.post(req_url, headers=headers)
+        _LOGGER.debug(f"POST {req_url} {headers} {response.status_code}")
+        response.raise_for_status()
+        _LOGGER.debug(f"RESPONSE {json.loads(response.text)}")
+        return json.loads(response.text)
 
     def empty_cart(self):
         headers = {
+            'Origin': 'https://www.rami-levy.co.il',
             'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9,he-IL;q=0.8,he;q=0.7',
+            'Locale': 'he',
             'Content-Type': 'application/json;charset=UTF-8',
-            # 'Content-Length': '0',
-            'EcomToken': self._token
+            'Content-Length': '0',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:71.0) Gecko/20100101 Firefox/71.0',
+            'ecomtoken': self._token
         }
         req_url = urljoin('https://api-prod.rami-levy.co.il', 'api/v1/cart/delete-cart')
         response = self._session.post(req_url, headers=headers)
-        _LOGGER.debug(f"POST {req_url} {response.status_code}")
+        _LOGGER.debug(f"POST {req_url} {headers} {response.status_code}")
         response.raise_for_status()

@@ -331,7 +331,7 @@ async def async_fill_cart(hass, data):
             store_conf = domain_data[DATA_STORE_CONF]
             store = get_store(store_conf[CONF_NAME])
             store.login(store_conf[CONF_USERNAME], store_conf[CONF_PASSWORD])
-            store.empty_cart()
+            # store.empty_cart()
             store.fill_cart(items)
             store.logout()
     except Exception as e:
@@ -345,6 +345,7 @@ async def async_empty_cart(hass, data):
         store_conf = domain_data[DATA_STORE_CONF]
         store = get_store(store_conf[CONF_NAME])
         store.login(store_conf[CONF_USERNAME], store_conf[CONF_PASSWORD])
+        store.get_cart()
         store.empty_cart()
         store.logout()
     except Exception as e:
