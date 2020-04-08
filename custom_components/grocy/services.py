@@ -318,20 +318,19 @@ async def async_sync(hass, data):
 async def async_fill_cart(hass, data):
     domain_data = hass.data[DOMAIN_DATA]
     try:
-        # Get all items in grocy shopping list
+        # Get online store
+        store_conf = domain_data[DATA_STORE_CONF]
+        store = get_store(store_conf[CONF_NAME])
+        # Convert grocy list to online store cart list
         items = []
         for item in domain_data[SHOPPING_LIST_NAME]:
             if item.shopping_list_id == 1:
                 for product in domain_data[PRODUCTS_NAME]:
                     if product.id == item.product_id:
-                        meta = json.loads(product.userfields['metadata'])
-                        items.append({'id': meta['id'], 'quantity': item.amount})
-        # Send items to store online cart
+                        items.append(store.to_cart_item(product, item.amount))
+        # Send cart to online store
         if len(items):
-            store_conf = domain_data[DATA_STORE_CONF]
-            store = get_store(store_conf[CONF_NAME])
             store.login(store_conf[CONF_USERNAME], store_conf[CONF_PASSWORD])
-            # store.empty_cart()
             store.fill_cart(items)
             store.logout()
     except Exception as e:
@@ -345,8 +344,7 @@ async def async_empty_cart(hass, data):
         store_conf = domain_data[DATA_STORE_CONF]
         store = get_store(store_conf[CONF_NAME])
         store.login(store_conf[CONF_USERNAME], store_conf[CONF_PASSWORD])
-        store.get_cart()
-        store.empty_cart()
+        store.clear_cart()
         store.logout()
     except Exception as e:
         _LOGGER.error(f"Failed to empty online store cart ({type(e).__name__})")

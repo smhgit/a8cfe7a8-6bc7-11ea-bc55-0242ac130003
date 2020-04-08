@@ -74,11 +74,11 @@ class RamiLevyStoreApiClient(StoreApiClient):
         self._session = None
         self._token = None
 
-    def fill_cart(self, products):
-        # Convert items to store format
+    def fill_cart(self, items):
+        '''Fill online store with cart items'''
         data = json.dumps({
             "store": self._store_id,
-            "items": list(map(lambda i: {"C": i["id"], "Quantity": str(i['quantity'])}, products))
+            "items": items
         })
         headers = {
             'Origin': 'https://www.rami-levy.co.il',
@@ -86,7 +86,7 @@ class RamiLevyStoreApiClient(StoreApiClient):
             'Accept-Language': 'en-US,en;q=0.9,he-IL;q=0.8,he;q=0.7',
             'Locale': 'he',
             'Content-Type': 'application/json;charset=UTF-8',
-            'Content-Length': str(len(data)),
+            # 'Content-Length': str(len(data)),
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:71.0) Gecko/20100101 Firefox/71.0',
             'ecomtoken': self._token
         }
@@ -96,13 +96,14 @@ class RamiLevyStoreApiClient(StoreApiClient):
         response.raise_for_status()
 
     def get_cart(self):
+        '''Get items from online store cart'''
         headers = {
             'Origin': 'https://www.rami-levy.co.il',
             'Accept': 'application/json, text/plain, */*',
             'Accept-Language': 'en-US,en;q=0.9,he-IL;q=0.8,he;q=0.7',
             'Locale': 'he',
             'Content-Type': 'application/json;charset=UTF-8',
-            'Content-Length': '0',
+            # 'Content-Length': '0',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:71.0) Gecko/20100101 Firefox/71.0',
             'ecomtoken': self._token
         }
@@ -113,7 +114,15 @@ class RamiLevyStoreApiClient(StoreApiClient):
         _LOGGER.debug(f"RESPONSE {json.loads(response.text)}")
         return json.loads(response.text)
 
+    def clear_cart(self):
+        '''Clear online store cart (empty cart by sending 0 quantity)'''
+        cart = self.get_cart()
+        for item in cart:
+            item['Quantity'] = '0'
+        self.fill_cart(cart)
+
     def empty_cart(self):
+        '''Empty online store cart'''
         headers = {
             'Origin': 'https://www.rami-levy.co.il',
             'Accept': 'application/json, text/plain, */*',
@@ -128,3 +137,12 @@ class RamiLevyStoreApiClient(StoreApiClient):
         response = self._session.post(req_url, headers=headers)
         _LOGGER.debug(f"POST {req_url} {headers} {response.status_code}")
         response.raise_for_status()
+
+    def to_cart_item(self, product, quantity):
+        '''Convert grocy product to online store cart item format'''
+        meta = json.loads(product.userfields['metadata'])
+        cart_item = {
+            "C": meta['id'],
+            "Quantity": str(quantity)
+        }
+        return cart_item

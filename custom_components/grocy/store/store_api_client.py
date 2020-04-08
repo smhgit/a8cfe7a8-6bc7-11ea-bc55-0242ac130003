@@ -103,8 +103,14 @@ class StoreApiClient(ABC):
     def logout(self):
         pass
 
-    def fill_cart(self, products):
+    def fill_cart(self, items):
         _LOGGER.debug('fill_cart must be implemented')
+
+    def get_cart(self):
+        _LOGGER.debug('fget_cart must be implemented')
+
+    def clear_cart(self):
+        _LOGGER.debug('clear_cart must be implemented')
 
     def empty_cart(self):
         _LOGGER.debug('empty_cart must be implemented')
