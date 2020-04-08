@@ -67,6 +67,7 @@ class StoreApiClient(ABC):
     """Online store api client interface"""
         
     def __init__(self, name: str, base_url: str, username: str, password: str):
+        '''Initialize online store client'''
         self._name = name
         self._base_url = f"https://{base_url}"
         self._session = None
@@ -75,6 +76,7 @@ class StoreApiClient(ABC):
 
     @property
     def name(self) -> str:
+        '''Return online store name'''
         return self._name
 
     def _do_get_request(self, end_url, timeout: int = 20, verify_ssl: bool = True, headers = { "accept": "application/json" }):
@@ -98,19 +100,29 @@ class StoreApiClient(ABC):
         pass
 
     def login(self, username: str, password: str):
-        pass
+        '''Login to online store'''
+        raise Exception('online store cart not supported')
 
     def logout(self):
-        pass
+        '''Logout from online store'''
+        raise Exception('online store cart not supported')
 
     def fill_cart(self, items):
-        _LOGGER.debug('fill_cart must be implemented')
+        '''Fill online store cart with items'''
+        raise Exception('online store cart not supported')
 
     def get_cart(self):
-        _LOGGER.debug('fget_cart must be implemented')
+        '''Get online store cart items'''
+        raise Exception('online store cart not supported')
 
     def clear_cart(self):
-        _LOGGER.debug('clear_cart must be implemented')
+        ''''''
+        raise Exception('online store cart not supported')
 
     def empty_cart(self):
-        _LOGGER.debug('empty_cart must be implemented')
+        ''''''
+        raise Exception('online store cart not supported')
+
+    def to_cart_item(self, product, quantity):
+        '''Convert grocy product to store cart item representation'''
+        raise Exception('online store cart not supported')

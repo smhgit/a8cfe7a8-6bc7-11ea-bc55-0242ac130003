@@ -86,7 +86,6 @@ class RamiLevyStoreApiClient(StoreApiClient):
             'Accept-Language': 'en-US,en;q=0.9,he-IL;q=0.8,he;q=0.7',
             'Locale': 'he',
             'Content-Type': 'application/json;charset=UTF-8',
-            # 'Content-Length': str(len(data)),
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:71.0) Gecko/20100101 Firefox/71.0',
             'ecomtoken': self._token
         }
@@ -103,7 +102,6 @@ class RamiLevyStoreApiClient(StoreApiClient):
             'Accept-Language': 'en-US,en;q=0.9,he-IL;q=0.8,he;q=0.7',
             'Locale': 'he',
             'Content-Type': 'application/json;charset=UTF-8',
-            # 'Content-Length': '0',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:71.0) Gecko/20100101 Firefox/71.0',
             'ecomtoken': self._token
         }
@@ -111,8 +109,13 @@ class RamiLevyStoreApiClient(StoreApiClient):
         response = self._session.post(req_url, headers=headers)
         _LOGGER.debug(f"POST {req_url} {headers} {response.status_code}")
         response.raise_for_status()
-        _LOGGER.debug(f"RESPONSE {json.loads(response.text)}")
-        return json.loads(response.text)
+        _LOGGER.debug(f"RESPONSE {response.text}")
+        # Convert get_cart format to fill_cart format
+        cart = json.loads(response.text)["items"]
+        for item in cart:
+            item['C'] = item.pop('id')
+            item['Quantity'] = item.pop('quantity')
+        return cart
 
     def clear_cart(self):
         '''Clear online store cart (empty cart by sending 0 quantity)'''
@@ -129,7 +132,6 @@ class RamiLevyStoreApiClient(StoreApiClient):
             'Accept-Language': 'en-US,en;q=0.9,he-IL;q=0.8,he;q=0.7',
             'Locale': 'he',
             'Content-Type': 'application/json;charset=UTF-8',
-            'Content-Length': '0',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:71.0) Gecko/20100101 Firefox/71.0',
             'ecomtoken': self._token
         }
