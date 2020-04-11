@@ -13,7 +13,7 @@ from .const import (VERSION, DOMAIN, DOMAIN_DATA, DATA_ENTITIES,
 
 _LOGGER = logging.getLogger(__name__)
 
-SCAN_INTERVAL = timedelta(minutes=5)
+SCAN_INTERVAL = timedelta(minutes=10)
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):

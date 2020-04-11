@@ -164,6 +164,7 @@ async def async_add_product(hass, data):
         entity = domain_data[DATA_ENTITIES].async_get_by_barcode(data[CONF_BARCODE])
         # If entity (product) exists, update it, otherwise, add new entity (product)
         if entity:
+            _LOGGER.debug(f"Update product")
             id = entity.device_state_attributes['id']
             domain_data[DATA_GROCY].update_product(id, product_group_id = data[CONF_PRODUCT_GROUP_ID],
                 location_id = data[CONF_PRODUCT_LOCATION_ID])
@@ -175,6 +176,7 @@ async def async_add_product(hass, data):
                 "entity_id": entity.entity_id
             })
         else:
+            _LOGGER.debug(f"Add product")
             # Search store for product
             store = get_store(data[CONF_STORE])
             store_product = store.get_product_by_barcode(data[CONF_BARCODE])
