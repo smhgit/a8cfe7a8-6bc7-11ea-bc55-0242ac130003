@@ -355,3 +355,13 @@ async def async_empty_cart(hass, data):
 
 async def async_debug(hass, data):
     _LOGGER.debug('Debug service')
+    domain_data = hass.data[DOMAIN_DATA]
+    _LOGGER.debug('PRODUCTS')
+    for product in domain_data[PRODUCTS_NAME]:
+        _LOGGER.debug(vars(product))
+    _LOGGER.debug('SHOPPING LIST')
+    for shopping_list in domain_data[SHOPPING_LIST_NAME]:
+        _LOGGER.debug(vars(shopping_list))
+    _LOGGER.debug('ENTITIES')
+    for entity in domain_data[DATA_ENTITIES].async_get_all():
+        _LOGGER.debug(f"{entity.entity_id}")
