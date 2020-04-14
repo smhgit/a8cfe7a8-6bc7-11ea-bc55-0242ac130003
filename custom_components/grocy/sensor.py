@@ -191,6 +191,6 @@ class GrocySensor(GrocySensorEntity):
 
     async def async_update(self) -> None:
         """Fetch new state data for the sensor."""
-        _LOGGER.debug("Update grocy sensor")
+        # _LOGGER.debug("Update grocy sensor")
         self._state = 'connected'
         self._attributes['total_products'] = len(self.hass.data[DOMAIN_DATA][DATA_ENTITIES].async_get_all_by_class_name('ProductSensor'))

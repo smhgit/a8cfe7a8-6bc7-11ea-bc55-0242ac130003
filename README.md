@@ -1,6 +1,6 @@
 # Grocy
 
-A Home Assisatnt shopping list integration based on [Grocy ERP](https://grocy.info/).
+A Home Assistant shopping list integration based on [Grocy ERP](https://grocy.info/).
 
 ---
 
