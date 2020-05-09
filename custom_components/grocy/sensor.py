@@ -7,7 +7,7 @@ from datetime import timedelta
 from homeassistant.helpers.entity import Entity, async_generate_entity_id
 from homeassistant.components.sensor import ENTITY_ID_FORMAT
 
-from .const import (VERSION, DOMAIN, DOMAIN_DATA, DATA_ENTITIES,
+from .const import (DOMAIN, DOMAIN_DATA, DATA_ENTITIES,
                     PRODUCTS_NAME, SHOPPING_LISTS_NAME, SHOPPING_LIST_NAME, LOCATIONS_NAME,
                     QUANTITY_UNITS_NAME, PRODUCT_GROUPS_NAME)
 
@@ -183,7 +183,6 @@ class GrocySensor(GrocySensorEntity):
         self._state = None
         self._attributes = {
             'total_products': 0,
-            'integration_version': VERSION,
             'grocy_version': '2.6.1'
         }
         self._name = 'Grocy'

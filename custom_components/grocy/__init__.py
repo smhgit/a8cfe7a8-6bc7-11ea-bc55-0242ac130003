@@ -8,9 +8,8 @@ from homeassistant.const import CONF_HOST
 from .grocy import Grocy
 
 from .services import setup_services
-from .helpers import async_check_files
 
-from .const import (DOMAIN, DOMAIN_DATA, REQUIRED_FILES,
+from .const import (DOMAIN, DOMAIN_DATA,
                     CONF_APIKEY, CONF_STORE,
                     DATA_GROCY, DATA_DATA, DATA_ENTITIES, DATA_STORE_CONF,
                     PRODUCTS_NAME, SHOPPING_LISTS_NAME, SHOPPING_LIST_NAME, LOCATIONS_NAME,
@@ -26,11 +25,6 @@ async def async_setup(hass, config):
     conf = config.get(DOMAIN)
     if conf is None:
         return True
-
-    # Check that all required files are present
-    file_check = await async_check_files(hass)
-    if not file_check:
-        return False
 
     # Get "global" configuration.
     grocy_host = conf.get(CONF_HOST)

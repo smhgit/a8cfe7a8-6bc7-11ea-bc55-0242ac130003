@@ -4,21 +4,6 @@ DOMAIN = "grocy"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
 DOMAIN_EVENT = "grocy_updated"
 
-REQUIRED_FILES = [
-    "__init__.py",
-    "const.py",
-    "manifest.json",
-    "sensor.py",
-    "services.py",
-    # "grocy.py",
-    # "grocy_api_client.py",
-    # "store.py",
-    # "store_api_client.py",
-    "schema.py",
-    "helpers.py",
-    "utils.py",
-    ".translations/en.json"
-]
 DOMAIN_SERVICE = "{}"
 
 # Integration local data
