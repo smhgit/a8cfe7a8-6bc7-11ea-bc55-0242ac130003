@@ -10,7 +10,7 @@ from .grocy import Grocy
 from .services import setup_services
 from .helpers import async_check_files
 
-from .const import (DOMAIN, DOMAIN_DATA, REQUIRED_FILES, VERSION, ISSUE_URL,
+from .const import (DOMAIN, DOMAIN_DATA, REQUIRED_FILES,
                     CONF_APIKEY, CONF_STORE,
                     DATA_GROCY, DATA_DATA, DATA_ENTITIES, DATA_STORE_CONF,
                     PRODUCTS_NAME, SHOPPING_LISTS_NAME, SHOPPING_LIST_NAME, LOCATIONS_NAME,
