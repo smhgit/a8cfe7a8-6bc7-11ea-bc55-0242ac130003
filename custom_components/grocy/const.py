@@ -1,6 +1,4 @@
-"""Constants for grocy."""
-
-VERSION = "0.0.36"
+"""Constants"""
 
 DOMAIN = "grocy"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
@@ -21,7 +19,6 @@ REQUIRED_FILES = [
     "utils.py",
     ".translations/en.json"
 ]
-ISSUE_URL = "https://github.com/smhgit/grocery_list/issues"
 DOMAIN_SERVICE = "{}"
 
 # Integration local data
